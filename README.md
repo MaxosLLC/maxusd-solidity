@@ -1,1 +1,1 @@
-# maxusd-solidity
+# MaxosLLC-Contract
