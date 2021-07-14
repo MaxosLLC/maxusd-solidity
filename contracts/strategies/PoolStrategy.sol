@@ -21,7 +21,6 @@ contract PoolStrategy is ReentrancyGuardUpgradeable {
   // Address manager
   address public addressManager;
 
-
   /*** Contract Logic Starts Here */
 
   modifier onlyBanker() {
@@ -29,7 +28,11 @@ contract PoolStrategy is ReentrancyGuardUpgradeable {
     _;
   }
 
-  function initialize(address _addressManager, address _pool, uint256 _amountLimit) public initializer {
+  function initialize(
+    address _addressManager,
+    address _pool,
+    uint256 _amountLimit
+  ) public initializer {
     __ReentrancyGuard_init();
 
     addressManager = _addressManager;
@@ -41,18 +44,14 @@ contract PoolStrategy is ReentrancyGuardUpgradeable {
    * @notice Get asset value of the strategy
    * @return (uint256) asset value in USD
    */
-  function getAssetValue() external returns (uint256) {
-  
-  }
+  function getAssetValue() external returns (uint256) {}
 
   /**
    * @notice Accept token from banker and transfer it in the external pool
    * @dev Token amount must be less than the limit
    * @param amount Token amount
    */
-  function invest(uint256 amount) external onlyBanker {
-
-  }
+  function invest(uint256 amount) external onlyBanker {}
 
   /**
    * @notice Redeem token from the external pool and return it to requestor
@@ -61,7 +60,5 @@ contract PoolStrategy is ReentrancyGuardUpgradeable {
    * @param beneficiary Redemption requestor
    * @param amount Token amount
    */
-  function redeem(address beneficiary, uint256 amount) external onlyBanker nonReentrant {
-
-  }
+  function redeem(address beneficiary, uint256 amount) external onlyBanker nonReentrant {}
 }

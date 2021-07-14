@@ -8,5 +8,5 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
  * @author Maxos
  */
 contract MultiSigWallet is ReentrancyGuardUpgradeable {
-    
+
 }

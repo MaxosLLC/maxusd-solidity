@@ -19,7 +19,6 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   address public override bankerContract;
   address public override treasuryContract;
 
-
   /*** Contract Logic Starts Here */
 
   function initialize(address _manager) public initializer {
