@@ -10,10 +10,6 @@ import "../interfaces/IAddressManager.sol";
  * @author Maxos
  */
 contract Banker is ReentrancyGuardUpgradeable {
-  /*** Events ***/
-  // event Mint(address indexed to, uint256 amount);
-  // event Burn(address indexed from, uint256 amount);
-
   /*** Storage Properties ***/
 
   // Strategy settings
