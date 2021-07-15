@@ -4,12 +4,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IAddressManager.sol";
+import "../interfaces/ITreasury.sol";
 
 /**
  * @notice Treasury Contract
  * @author Maxos
  */
-contract Treasury is ReentrancyGuardUpgradeable {
+contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
   /*** Events ***/
 
   event AllowToken(address indexed token);
@@ -21,12 +22,12 @@ contract Treasury is ReentrancyGuardUpgradeable {
   address[] public allowedTokens;
 
   // Returns if token is allowed
-  mapping(address => bool) internal _isAllowedToken;
+  mapping(address => bool) public isAllowedToken;
 
   // MaxUSD scaled balance
   // userScaledBalance = userBalance / currentInterestIndex
   // This essentially `marks` when a user has deposited in the treasury and can be used to calculate the users current redeemable balance
-  mapping(address => uint256) internal _userScaledBalance;
+  mapping(address => uint256) public userScaledBalance;
 
   // Address manager
   address public addressManager;
@@ -46,29 +47,31 @@ contract Treasury is ReentrancyGuardUpgradeable {
 
   /**
    * @notice Deposit token to the protocol
+   * @dev Only allowed token can be deposited
    * @dev Mint MaxUSD and MaxBanker according to mintDepositPercentage
    * @dev Increase user's insurance if mintDepositPercentage is [0, 100)
    * @param _token token address
    * @param _amount token amount
    */
-  function deposit(address _token, uint256 _amount) external {}
+  function deposit(address _token, uint256 _amount) external override {}
 
   /**
    * @notice Withdraw token from the protocol
+   * @dev Only allowed token can be withdrawn
    * @dev Decrease user's insurance if _token is MaxBanker
    * @param _token token address
    * @param _amount token amount
    */
-  function withdraw(address _token, uint256 _amount) external nonReentrant {}
+  function withdraw(address _token, uint256 _amount) external override nonReentrant {}
 
   /**
    * @notice Add a new token into the allowed token list
    * @param _token Token address
    */
-  function allowToken(address _token) external onlyManager {
-    require(!_isAllowedToken[_token], "Already allowed");
+  function allowToken(address _token) external override onlyManager {
+    require(!isAllowedToken[_token], "Already allowed");
 
-    _isAllowedToken[_token] = true;
+    isAllowedToken[_token] = true;
     allowedTokens.push(_token);
 
     emit AllowToken(_token);
@@ -78,9 +81,9 @@ contract Treasury is ReentrancyGuardUpgradeable {
    * @notice Remove token from the allowed token list
    * @param _token Token index in the allowed token list
    */
-  function disallowToken(address _token) external onlyManager {
-    require(_isAllowedToken[_token], "Already disallowed");
-    _isAllowedToken[_token] = false;
+  function disallowToken(address _token) external override onlyManager {
+    require(isAllowedToken[_token], "Already disallowed");
+    isAllowedToken[_token] = false;
 
     for (uint256 i; i < allowedTokens.length; i++) {
       if (allowedTokens[i] == _token) {
