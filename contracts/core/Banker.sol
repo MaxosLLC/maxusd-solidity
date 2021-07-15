@@ -18,7 +18,6 @@ contract Banker is ReentrancyGuardUpgradeable {
     uint256 desiredAssetAP; // desired asset allocation percentage
     uint256 value; // asset value in strategy
     uint256 reportedAt; // last reported time
-    bool isTreasury; // Represent if strategy is cash one
   }
 
   // MaxUSD interest index state
@@ -129,13 +128,11 @@ contract Banker is ReentrancyGuardUpgradeable {
    * @param _strategy Strategy address
    * @param _insuranceAP Insurance allocation percentage
    * @param _desiredAssetAP Desired asset allocation percentage
-   * @param _isTreasury Represent if strategy is cash one
    */
   function addStrategy(
     address _strategy,
     uint256 _insuranceAP,
     uint256 _desiredAssetAP,
-    bool _isTreasury
   ) external onlyManager {}
 
   /**
