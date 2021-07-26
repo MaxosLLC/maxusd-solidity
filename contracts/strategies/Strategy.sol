@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IAddressManager.sol";
-import "../interfaces/IPoolStrategy.sol";
+import "../interfaces/IStrategy.sol";
 
 /**
  * @title Strategy contract
  * @author Maxos
  */
-contract PoolStrategy is IPoolStrategy, ReentrancyGuardUpgradeable {
+contract Strategy is IStrategy, ReentrancyGuardUpgradeable {
   /*** Storage Properties ***/
 
   // Pool address the strategy interacts with
