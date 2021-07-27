@@ -7,4 +7,6 @@ interface IAddressManager {
   function bankerContract() external view returns (address);
 
   function treasuryContract() external view returns (address);
+
+  function tokenAddress(string calldata _token) external view returns (address);
 }

@@ -18,6 +18,7 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   // Maxos contracts
   address public override bankerContract;
   address public override treasuryContract;
+  mapping(string => address) public override tokenAddress;
 
   /*** Contract Logic Starts Here */
 
@@ -49,5 +50,14 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
    */
   function setTreasuryContract(address _treasuryContract) external onlyOwner {
     treasuryContract = _treasuryContract;
+  }
+
+  /**
+   * @notice Register token address
+   * @param _token Token symbol
+   * @param _address Token address
+   */
+  function registerToken(string calldata _token, address _address) external onlyOwner {
+    tokenAddress[_token] = _address;
   }
 }
