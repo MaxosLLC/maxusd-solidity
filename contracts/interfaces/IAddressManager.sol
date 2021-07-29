@@ -8,5 +8,7 @@ interface IAddressManager {
 
   function treasuryContract() external view returns (address);
 
-  function tokenAddress(string calldata _token) external view returns (address);
+  function maxUSD() external view returns (address);
+
+  function maxBanker() external view returns (address);
 }

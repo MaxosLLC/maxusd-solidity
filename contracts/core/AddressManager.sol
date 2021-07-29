@@ -18,7 +18,10 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   // Maxos contracts
   address public override bankerContract;
   address public override treasuryContract;
-  mapping(string => address) public override tokenAddress;
+
+  // Maxos tokens
+  address public override maxUSD;
+  address public override maxBanker;
 
   /*** Contract Logic Starts Here */
 
@@ -53,11 +56,18 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   }
 
   /**
-   * @notice Register token address
-   * @param _token Token symbol
-   * @param _address Token address
+   * @notice Set MaxUSD token address
+   * @param _address MaxUSD token address
    */
-  function registerToken(string calldata _token, address _address) external onlyOwner {
-    tokenAddress[_token] = _address;
+  function setMaxUSD(address _address) external onlyOwner {
+    maxUSD = _address;
+  }
+
+  /**
+   * @notice Set MaxBanker token address
+   * @param _address MaxBanker token address
+   */
+  function setMaxBanker(address _address) external onlyOwner {
+    maxBanker = _address;
   }
 }
