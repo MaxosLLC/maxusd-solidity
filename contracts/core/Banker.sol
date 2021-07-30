@@ -24,7 +24,7 @@ contract Banker is ReentrancyGuardUpgradeable {
   // Interest rate
   struct InterestRate {
     uint256 interestRate; // current annual interest rate
-    uint256 updatedAt; // updated time
+    uint256 lastInterestPaymentTime; // last time that we paid interest
   }
 
   // MaxUSD redemption queue to the strategy
@@ -108,7 +108,7 @@ contract Banker is ReentrancyGuardUpgradeable {
 
     // set initial interest rate
     maxUSDinterestRate.interestRate = 0;
-    maxUSDinterestRate.updatedAt = block.timestamp;
+    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
 
     // set redemptionDelayTime
     redemptionDelayTime = _redemptionDelayTime;
@@ -140,7 +140,7 @@ contract Banker is ReentrancyGuardUpgradeable {
   function addStrategy(
     address _strategy,
     uint256 _insuranceAP,
-    uint256 _desiredAssetAP,
+    uint256 _desiredAssetAP
   ) external onlyManager {}
 
   /**
@@ -214,14 +214,14 @@ contract Banker is ReentrancyGuardUpgradeable {
    * @notice Update annual interest rate and MaxUSDLiabilities for MaxUSD holders
    * @param _interestRate Interest rate earned since the last recored one
    */
-  function updateInterestRateAndMaxUSDLiabilities(uint256 _interestRate) external onlyManager {
+  function payInterest(uint256 _interestRate) external onlyManager {
     // update interest rate
-    maxUSDinterestRate.interestRate _interestRate;
-    maxUSDinterestRate.updatedAt = block.timestamp;
+    maxUSDinterestRate.interestRate = _interestRate;
+    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
 
     // update MaxUSDLiabilities
-    uint256 passedDays = (block.timestamp - maxUSDinterestRate.updatedAt) / 1 days;
-    maxUSDLiabilities *= ((1 + interestRate/100) ** (passedDays / 365));
+    uint256 passedDays = (block.timestamp - maxUSDinterestRate.lastInterestPaymentTime) / 1 days;
+    maxUSDLiabilities *= ((1 + _interestRate/100) ** (passedDays / 365));
   }
 
   /**
@@ -251,9 +251,9 @@ contract Banker is ReentrancyGuardUpgradeable {
    * @notice Get the MaxUSD holder's current MaxUSDLiablity
    * @param _maxUSDHolder MaxUSD holder
    */
-  function getUserMaxUSDLiability(address _maxUSDHolder) external returns (uint256) {
+  function getUserMaxUSDLiability(address _maxUSDHolder) external view returns (uint256) {
     address maxUSD = IAddressManager(addressManager).maxUSD();
-    uint256 totalShare = IERC20Upgradeable(maxUSD).balanceOf(maxUSD.totalSupply());
+    uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
     uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
 
     return maxUSDLiabilities / totalShare * holderShare;
