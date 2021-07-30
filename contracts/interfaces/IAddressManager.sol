@@ -11,4 +11,6 @@ interface IAddressManager {
   function maxUSD() external view returns (address);
 
   function maxBanker() external view returns (address);
+
+  function investor() external view returns (address);
 }

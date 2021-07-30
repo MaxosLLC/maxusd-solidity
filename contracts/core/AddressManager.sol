@@ -23,6 +23,9 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   address public override maxUSD;
   address public override maxBanker;
 
+  // Investor
+  address public override investor;
+
   /*** Contract Logic Starts Here */
 
   function initialize(address _manager) public initializer {
@@ -57,17 +60,26 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
 
   /**
    * @notice Set MaxUSD token address
-   * @param _address MaxUSD token address
+   * @param _maxUSD MaxUSD token address
    */
-  function setMaxUSD(address _address) external onlyOwner {
-    maxUSD = _address;
+  function setMaxUSD(address _maxUSD) external onlyOwner {
+    maxUSD = _maxUSD;
   }
 
   /**
    * @notice Set MaxBanker token address
-   * @param _address MaxBanker token address
+   * @param _maxBanker MaxBanker token address
    */
-  function setMaxBanker(address _address) external onlyOwner {
-    maxBanker = _address;
+  function setMaxBanker(address _maxBanker) external onlyOwner {
+    maxBanker = _maxBanker;
   }
+
+  /**
+   * @notice Set investor address
+   * @param _investor Investor wallet address
+   */
+  function setInvestor(address _investor) external onlyOwner {
+    investor = _investor;
+  }
+  
 }
