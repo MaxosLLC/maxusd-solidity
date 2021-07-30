@@ -40,16 +40,10 @@ contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
     _;
   }
 
-  function initialize(address _addressManager, string[] memory _tokens) public initializer {
+  function initialize(address _addressManager) public initializer {
     __ReentrancyGuard_init();
 
     addressManager = _addressManager;
-
-    address tokenAddress;
-    for (uint256 i; i < _tokens.length; i++) {
-      tokenAddress = IAddressManager(_addressManager).tokenAddress(_tokens[i]);
-      IERC20Upgradeable(tokenAddress).approve(IAddressManager(addressManager).bankerContract(), type(uint256).max);
-    }
   }
 
   /**
@@ -81,6 +75,9 @@ contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
     isAllowedToken[_token] = true;
     allowedTokens.push(_token);
 
+    // approve infinit amount of tokens to banker contract
+    IERC20Upgradeable(_token).approve(IAddressManager(addressManager).bankerContract(), type(uint256).max);
+
     emit AllowToken(_token);
   }
 
@@ -96,6 +93,10 @@ contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
       if (allowedTokens[i] == _token) {
         allowedTokens[i] = allowedTokens[allowedTokens.length - 1];
         allowedTokens.pop();
+
+        // remove allowance to banker contract
+        IERC20Upgradeable(_token).approve(IAddressManager(addressManager).bankerContract(), 0);
+
         break;
       }
     }
