@@ -7,4 +7,10 @@ interface IAddressManager {
   function bankerContract() external view returns (address);
 
   function treasuryContract() external view returns (address);
+
+  function maxUSD() external view returns (address);
+
+  function maxBanker() external view returns (address);
+
+  function investor() external view returns (address);
 }

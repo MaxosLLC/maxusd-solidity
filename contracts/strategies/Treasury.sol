@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IAddressManager.sol";
@@ -74,6 +75,9 @@ contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
     isAllowedToken[_token] = true;
     allowedTokens.push(_token);
 
+    // approve infinit amount of tokens to banker contract
+    IERC20Upgradeable(_token).approve(IAddressManager(addressManager).bankerContract(), type(uint256).max);
+
     emit AllowToken(_token);
   }
 
@@ -89,6 +93,10 @@ contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
       if (allowedTokens[i] == _token) {
         allowedTokens[i] = allowedTokens[allowedTokens.length - 1];
         allowedTokens.pop();
+
+        // remove allowance to banker contract
+        IERC20Upgradeable(_token).approve(IAddressManager(addressManager).bankerContract(), 0);
+
         break;
       }
     }

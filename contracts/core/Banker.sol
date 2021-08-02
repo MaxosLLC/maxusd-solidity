@@ -1,9 +1,11 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IAddressManager.sol";
+import "../interfaces/IStrategyAssetValue.sol";
 
 /**
  * @notice Banker Contract
@@ -14,17 +16,16 @@ contract Banker is ReentrancyGuardUpgradeable {
 
   // Strategy settings
   struct StrategySettings {
-    uint256 insuranceAP; // insurance allocation percentage
-    uint256 desiredAssetAP; // desired asset allocation percentage
-    uint256 value; // asset value in strategy
+    uint256 insuranceAP; // insurance allocation percentage, scaled by 10e2
+    uint256 desiredAssetAP; // desired asset allocation percentage, scaled by 10e2
+    uint256 assetValue; // asset value in strategy, scaled by 10e2
     uint256 reportedAt; // last reported time
   }
 
-  // MaxUSD interest index state
-  // interestIndex increases as interest is earned from the strategy
-  struct MaxUSDInterestIndex {
-    uint256 updatedAt; // last updated time
-    uint256 interestIndex; // last interest index scaled by 10e18
+  // Interest rate
+  struct InterestRate {
+    uint256 interestRate; // current annual interest rate, scaled by 10e2
+    uint256 lastInterestPaymentTime; // last time that we paid interest
   }
 
   // MaxUSD redemption queue to the strategy
@@ -43,11 +44,15 @@ contract Banker is ReentrancyGuardUpgradeable {
   // Information per strategy
   mapping(address => StrategySettings) public strategySettings;
 
-  // MaxUSD interest index
-  MaxUSDInterestIndex public maxUSDInterestIndex;
+  // MaxUSD annual interest rate
+  // Annual interest rate is increased as the interest is earned from the strategy
+  InterestRate public maxUSDinterestRate;
 
-  // Mint percentage of MaxUSD and MaxBanker
-  // If mintDepositPercentage is 80, we mint 80% of MaxUSD and 20% of MaxBanker
+  // MaxUSD Liabilities
+  uint256 public maxUSDLiabilities;
+
+  // Mint percentage of MaxUSD and MaxBanker, scaled by 10e2
+  // If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
   uint256 public mintDepositPercentage;
 
   // Redemption request dealy time
@@ -56,10 +61,7 @@ contract Banker is ReentrancyGuardUpgradeable {
   // Redemption request queue
   RedemptionRequest[] internal _redemptionRequestQueue;
 
-  // Total values
-  uint256 totalValues;
-
-  // Turnoff option
+  // Turn on/off option
   bool public isTurnOff;
 
   // Address manager
@@ -84,9 +86,9 @@ contract Banker is ReentrancyGuardUpgradeable {
 
   /**
    * @notice Initialize the banker contract
-   * @dev If mintDepositPercentage is 80, we mint 80% of MaxUSD and 20% of MaxBanker
+   * @dev If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
    * @param _addressManager Address manager contract
-   * @param _mintDepositPercentage Mint percentage of MaxUSD and MaxBanker
+   * @param _mintDepositPercentage Mint percentage of MaxUSD and MaxBanker, scaled by 10e2
    * @param _redemptionDelayTime Delay time for the redemption request
    */
   function initialize(
@@ -98,11 +100,15 @@ contract Banker is ReentrancyGuardUpgradeable {
 
     addressManager = _addressManager;
 
-    require(_mintDepositPercentage <= 100, "Invalid percentage");
+    // set mintDepositPercentage
+    require(_mintDepositPercentage <= 10000, "Invalid percentage");
     mintDepositPercentage = _mintDepositPercentage;
 
-    maxUSDInterestIndex.updatedAt = block.timestamp;
-    maxUSDInterestIndex.interestIndex = 10**18;
+    // set initial interest rate
+    maxUSDinterestRate.interestRate = 0;
+    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
+
+    // set redemptionDelayTime
     redemptionDelayTime = _redemptionDelayTime;
   }
 
@@ -111,6 +117,7 @@ contract Banker is ReentrancyGuardUpgradeable {
    * @dev Turn off all activities except for redeeming from strategies (except treasury) and redeeming MaxUSD from the treasury
    */
   function turnOff() external onlyManager {
+    require(!isTurnOff, "Already turn off");
     isTurnOff = true;
   }
 
@@ -119,6 +126,7 @@ contract Banker is ReentrancyGuardUpgradeable {
    * @dev Turn on all activities
    */
   function turnOn() external onlyManager {
+    require(isTurnOff, "Already turn on");
     isTurnOff = false;
   }
 
@@ -126,13 +134,13 @@ contract Banker is ReentrancyGuardUpgradeable {
    * @notice Add a new strategy
    * @dev Set isValidStrategy to true
    * @param _strategy Strategy address
-   * @param _insuranceAP Insurance allocation percentage
-   * @param _desiredAssetAP Desired asset allocation percentage
+   * @param _insuranceAP Insurance allocation percentage, scaled by 10e2
+   * @param _desiredAssetAP Desired asset allocation percentage, scaled by 10e2
    */
   function addStrategy(
     address _strategy,
     uint256 _insuranceAP,
-    uint256 _desiredAssetAP,
+    uint256 _desiredAssetAP
   ) external onlyManager {}
 
   /**
@@ -145,7 +153,7 @@ contract Banker is ReentrancyGuardUpgradeable {
   /**
    * @notice Set insurance allocation percentage to the strategy
    * @param _strategies Strategy addresses
-   * @param _insuranceAPs Insurance allocation percentages
+   * @param _insuranceAPs Insurance allocation percentages, scaled by 10e2
    */
   function setStrategyInsuranceAPs(address[] memory _strategies, uint256[] memory _insuranceAPs)
     external
@@ -164,7 +172,7 @@ contract Banker is ReentrancyGuardUpgradeable {
    * @notice Set desired asset allocation percentage to the strategy
    * @dev Invest/redeem token in/from the strategy based on the new allocation percentage
    * @param _strategies Strategy addresses
-   * @param _desiredAssetAPs Desired asset allocation percentages
+   * @param _desiredAssetAPs Desired asset allocation percentages, scaled by 10e2
    */
   function setStrategyDesiredAssetAPs(address[] memory _strategies, uint256[] memory _desiredAssetAPs)
     external
@@ -177,11 +185,11 @@ contract Banker is ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Batch set of the insurance and desired asset allocation percentage
+   * @notice Batch set of the insurance and desired asset allocation percentages
    * @dev Invest/redeem token in/from the strategy based on the new allocation
    * @param _strategies Strategy addresses
-   * @param _insuranceAPs Insurance allocation percentages
-   * @param _desiredAssetAPs Desired asset allocation percentages
+   * @param _insuranceAPs Insurance allocation percentages, scaled by 10e2
+   * @param _desiredAssetAPs Desired asset allocation percentages, scaled by 10e2
    */
   function batchAllocation(
     address[] memory _strategies,
@@ -193,29 +201,23 @@ contract Banker is ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Set strategy value
-   * @dev Update report time
-   * @param _strategy Strategy address
-   * @param _value Strategy value
+   * @notice Update annual interest rate and MaxUSDLiabilities for MaxUSD holders
+   * @param _interestRate Interest rate earned since the last recored one, scaled by 10e2
    */
-  function setStrategyValue(address _strategy, uint256 _value) external onlyStrategy onlyTurnOn {
-    _setStrategyValue(_strategy, _value);
+  function payInterest(uint256 _interestRate) external onlyManager onlyTurnOn {
+    // update interest rate
+    maxUSDinterestRate.interestRate = _interestRate;
+    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
+
+    // update MaxUSDLiabilities
+    uint256 passedDays = (block.timestamp - maxUSDinterestRate.lastInterestPaymentTime) / 1 days;
+    maxUSDLiabilities *= (1 + _interestRate/10000) ** (passedDays / 365);
   }
 
   /**
-   * @notice Update maxUSD interest index
-   * @dev Interest index is scaled by 10e18 and _interestPercentage is scaled by 10e8
-   * @param _interestPercentage Interest percentage earned since the last recored interest index
-   */
-  function updateInterestIndex(uint256 _interestPercentage) external onlyManager {
-    maxUSDInterestIndex.updatedAt = block.timestamp;
-    maxUSDInterestIndex.interestIndex *= (1 + _interestPercentage / 10**8);
-  }
-
-  /**
-   * @notice Set mint percentage of maxUSD and maxBanker
+   * @notice Set mint percentage of MaxUSD and MaxBanker
    * @dev mint percentage is scaled by 10e2
-   * @param _mintDepositPercentage mint percentage of maxUSD and maxBanker
+   * @param _mintDepositPercentage mint percentage of MaxUSD and MaxBanker
    */
   function setMintDepositPercentage(uint256 _mintDepositPercentage) external onlyManager {
     mintDepositPercentage = _mintDepositPercentage;
@@ -236,11 +238,30 @@ contract Banker is ReentrancyGuardUpgradeable {
   function addRedemptionRequest(RedemptionRequest memory _redemptionRequest) external onlyStrategy onlyTurnOn {}
 
   /**
+   * @notice Get the MaxUSD holder's current MaxUSDLiablity
+   * @param _maxUSDHolder MaxUSD holder
+   */
+  function getUserMaxUSDLiability(address _maxUSDHolder) external view returns (uint256) {
+    address maxUSD = IAddressManager(addressManager).maxUSD();
+    uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
+    uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
+
+    return maxUSDLiabilities / totalShare * holderShare;
+  }
+
+  /**
    * @notice Get total asset values across the strategies
    * @dev Set every strategy value and update time
    * @return (uint256) Total asset value
    */
-  function getTotalAssetValues() external returns (uint256) {}
+  function getTotalAssetValue() external view returns (uint256) {
+    uint256 totalAssetValue;
+    for (uint256 i; i < strategies.length; i++) {
+      totalAssetValue += IStrategyAssetValue(strategies[i]).strategyAssetValue();
+    }
+
+    return totalAssetValue;
+  }
 
   /**
    * @notice Remove redemption request to the queue
@@ -249,30 +270,16 @@ contract Banker is ReentrancyGuardUpgradeable {
   function _removeRedemptionRequest(RedemptionRequest memory _redemptionRequest) internal onlyTurnOn {}
 
   /**
-   * @notice Set strategy value
-   * @dev Update report time
-   * @param _strategy Strategy address
-   * @param _value Strategy value
-   */
-  function _setStrategyValue(address _strategy, uint256 _value) internal {
-    require(isValidStrategy[_strategy], "Invalid strategy");
-
-    totalValues = totalValues - strategySettings[_strategy].value + _value;
-    strategySettings[_strategy].value = _value;
-    strategySettings[_strategy].reportedAt = block.timestamp;
-  }
-
-  /**
    * @notice Invest token in the strategy
    * @param _strategy Strategy address to invest
    * @param _amount Token amount
    */
-  function invest(address _strategy, uint256 _amount) internal onlyTurnOn {}
+  function _invest(address _strategy, uint256 _amount) internal onlyTurnOn {}
 
   /**
    * @notice Redeem token from the strategy
    * @param _strategy Strategy address to redeem
    * @param _amount Token amount
    */
-  function redeem(address _strategy, uint256 _amount) internal onlyTurnOn {}
+  function _redeem(address _strategy, uint256 _amount) internal onlyTurnOn {}
 }

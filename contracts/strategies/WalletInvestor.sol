@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 /**
- * @title MultiSigWallet contract
+ * @title WalletInvestor contract
  * @author Maxos
  */
-contract MultiSigWallet is ReentrancyGuardUpgradeable {
+contract WalletInvestor is ReentrancyGuardUpgradeable {
 
 }
