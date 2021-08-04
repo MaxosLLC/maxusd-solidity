@@ -14,8 +14,8 @@ import "../interfaces/IStrategyAssetValue.sol";
 contract Strategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradeable {
   /*** Storage Properties ***/
 
-  // Pool address the strategy interacts with
-  address public pool;
+  // Vault address the strategy interacts with
+  address public vault;
 
   // Address manager
   address public addressManager;
@@ -29,12 +29,12 @@ contract Strategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradea
 
   function initialize(
     address _addressManager,
-    address _pool
+    address _vault
   ) public initializer {
     __ReentrancyGuard_init();
 
     addressManager = _addressManager;
-    pool = _pool;
+    vault = _vault;
   }
 
   /**
