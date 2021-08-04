@@ -4,14 +4,16 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "../interfaces/IERC20Extended.sol";
 import "../interfaces/IAddressManager.sol";
 import "../interfaces/ITreasury.sol";
+import "../interfaces/IStrategyAssetValue.sol";
 
 /**
  * @notice Treasury Contract
  * @author Maxos
  */
-contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
+contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable {
   /*** Events ***/
 
   event AllowToken(address indexed token);
@@ -102,5 +104,18 @@ contract Treasury is ITreasury, ReentrancyGuardUpgradeable {
     }
 
     emit DisallowToken(_token);
+  }
+
+  /**
+   * @notice Returns asset value of the Treasury
+   * @return (uint256) asset value of the Treasury in USD
+   */
+  function strategyAssetValue() external view override returns (uint256) {
+    uint256 assetValue;
+    for (uint256 i; i < allowedTokens.length; i++) {
+      assetValue += IERC20Upgradeable(allowedTokens[i]).balanceOf(address(this)) / (10**IERC20Extended(allowedTokens[i]).decimals());
+    }
+
+    return assetValue;
   }
 }

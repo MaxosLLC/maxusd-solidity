@@ -54,6 +54,9 @@ module.exports = {
         },
         evmVersion: "byzantium",
       },
+      forking: {
+        url: nodeUrl("mainnet"),
+      },
     },
     kovan: {
       accounts,

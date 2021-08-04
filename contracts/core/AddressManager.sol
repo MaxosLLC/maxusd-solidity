@@ -81,5 +81,4 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   function setInvestor(address _investor) external onlyOwner {
     investor = _investor;
   }
-  
 }
