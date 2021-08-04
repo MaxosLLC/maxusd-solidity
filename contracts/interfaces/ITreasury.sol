@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 interface ITreasury {
-  function deposit(address token, uint256 amount) external;
+  function buyDeposit(address token, uint256 amount) external;
 
-  function withdraw(address token, uint256 amount) external;
+  function redeemDeposit(address token, uint256 amount) external;
 
   function allowToken(address token) external;
 

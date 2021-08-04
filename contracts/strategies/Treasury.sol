@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "../interfaces/IBanker.sol";
 import "../interfaces/IERC20Extended.sol";
 import "../interfaces/IAddressManager.sol";
 import "../interfaces/ITreasury.sol";
@@ -56,7 +57,15 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
    * @param _token token address
    * @param _amount token amount
    */
-  function deposit(address _token, uint256 _amount) external override {}
+  function buyDeposit(address _token, uint256 _amount) external override onlyManager {
+    require(isAllowedToken[_token], "Invalid token");
+
+    // transfer token
+    require(IERC20Upgradeable(_token).transferFrom(msg.sender, address(this), _amount));
+
+    // uint256 mintDepositPercentage = IBanker(IAddressManager(addressManager).bankerContract()).mintDepositPercentage();
+    // mint MaxUSD/MaxBanker tokens according to the mintDepositPercentage
+  }
 
   /**
    * @notice Withdraw token from the protocol
@@ -65,7 +74,21 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
    * @param _token token address
    * @param _amount token amount
    */
-  function withdraw(address _token, uint256 _amount) external override nonReentrant {}
+  function redeemDeposit(address _token, uint256 _amount) external override nonReentrant onlyManager {
+    require(isAllowedToken[_token], "Invalid token");
+    // require(_amount <= IBanker(IAddressManager(addressManager).bankerContract()).getUserMaxUSDLiability(msg.sender), "Invalid amount");
+
+    // add redemption request to Banker
+    RedemptionRequest memory redemptionRequest;
+    redemptionRequest.beneficiary = msg.sender;
+    redemptionRequest.amount = _amount;
+    redemptionRequest.requestedAt = block.timestamp;
+
+    IBanker(IAddressManager(addressManager).bankerContract()).addRedemptionRequest(redemptionRequest);
+
+    // // transfer token 
+    // require(IERC20Upgradeable(_token).transfer(msg.sender, _amount));
+  }
 
   /**
    * @notice Add a new token into the allowed token list
@@ -73,8 +96,8 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
    */
   function allowToken(address _token) external override onlyManager {
     require(!isAllowedToken[_token], "Already allowed");
-
     isAllowedToken[_token] = true;
+
     allowedTokens.push(_token);
 
     // approve infinit amount of tokens to banker contract
