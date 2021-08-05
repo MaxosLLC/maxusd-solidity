@@ -29,6 +29,12 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     uint256 lastInterestPaymentTime; // last time that we paid interest
   }
 
+  // Next interest rate
+  struct NextInterestRate {
+    uint256 interestRate; // next interest rate
+    uint256 nextRateStartTime;  // next rate start time
+  }
+
   // MaxUSD redemption queue to the strategy, defined in IBanker like this
   // struct RedemptionRequest {
   //   address beneficiary; // redemption requestor
@@ -45,16 +51,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   // Information per strategy
   mapping(address => StrategySettings) public strategySettings;
 
-  // MaxUSD annual interest rate
-  // Annual interest rate is increased as the interest is earned from the strategy
-  InterestRate public maxUSDinterestRate;
-
   // MaxUSD Liabilities
   uint256 public maxUSDLiabilities;
-
-  // Mint percentage of MaxUSD and MaxBanker, scaled by 10e2
-  // If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
-  uint256 public override mintDepositPercentage;
 
   // Redemption request dealy time
   uint256 public redemptionDelayTime;
@@ -67,6 +65,23 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
   // Address manager
   address public addressManager;
+
+
+  /*** Banker Settings Here */
+
+  // MaxUSD annual interest rate
+  // Annual interest rate is increased as the interest is earned from the strategy
+  InterestRate public maxUSDInterestRate;
+  
+  // MaxUSD next annual interest rate
+  NextInterestRate public maxUSDNextInterestRate;
+
+  // Mint percentage of MaxUSD and MaxBanker, scaled by 10e2
+  // If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
+  uint256 public override mintDepositPercentage;
+
+  // MaxBanker per dollar, scaled by 18
+  uint256 public maxBankerPerDollar;
 
   /*** Contract Logic Starts Here */
 
@@ -106,8 +121,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     mintDepositPercentage = _mintDepositPercentage;
 
     // set initial interest rate
-    maxUSDinterestRate.interestRate = 0;
-    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
+    maxUSDInterestRate.interestRate = 0;
+    maxUSDInterestRate.lastInterestPaymentTime = block.timestamp;
 
     // set redemptionDelayTime
     redemptionDelayTime = _redemptionDelayTime;
@@ -226,8 +241,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    */
   function payInterest(uint256 _interestRate) external onlyManager onlyTurnOn {
     // update interest rate
-    maxUSDinterestRate.interestRate = _interestRate;
-    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
+    maxUSDInterestRate.interestRate = _interestRate;
+    maxUSDInterestRate.lastInterestPaymentTime = block.timestamp;
 
     // update MaxUSDLiabilities
     maxUSDLiabilities = calculateMaxUSDLiabilities(_interestRate);
@@ -285,12 +300,30 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
+   * @notice Set next interest rate and start time
+   * @param _interestRate next interest rate
+   * @param _startTime next rate start time
+   */
+  function setNextInterestAndTime(uint256 _interestRate, uint256 _startTime) external onlyManager {
+    maxUSDNextInterestRate.interestRate = _interestRate;
+    maxUSDNextInterestRate.nextRateStartTime = _startTime;
+  }
+
+  /**
+   * @notice Set MaxBanker token number per dollar scaled by 10e18
+   * @dev This is 1 / price
+   */
+  function setMaxBankerPerDollar(uint256 _maxBankerPerDollar) external {
+    maxBankerPerDollar = _maxBankerPerDollar;
+  }
+
+  /**
    * @notice Calculate MaxUSDLiabilities with the interest rate given
    * @param _interestRate Interest rate scaled by 10e2
    * @return (uint256) MaxUSDLiabilities
    */
   function calculateMaxUSDLiabilities(uint256 _interestRate) public view returns (uint256) {
-    uint256 passedDays = (block.timestamp - maxUSDinterestRate.lastInterestPaymentTime) / 1 days;
+    uint256 passedDays = (block.timestamp - maxUSDInterestRate.lastInterestPaymentTime) / 1 days;
     return maxUSDLiabilities * (1 + _interestRate/10000) ** (passedDays / 365);
   }
 
