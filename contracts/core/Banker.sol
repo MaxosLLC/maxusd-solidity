@@ -58,7 +58,9 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   uint256 public redemptionDelayTime;
 
   // Redemption request queue
-  RedemptionRequest[] internal _redemptionRequestQueue;
+  mapping(uint256 => RedemptionRequest) internal _redemptionRequestQueue;
+  uint256 first;
+  uint256 last;
 
   // Turn on/off option
   bool public isTurnOff;
@@ -80,8 +82,23 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   // If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
   uint256 public override mintDepositPercentage;
 
-  // MaxBanker per dollar, scaled by 18
-  uint256 public maxBankerPerDollar;
+  // MaxBanker price, scaled by 10e18
+  uint256 public maxBankerPrice;
+
+  // Celling MaxSD price, scaled by 10e18
+  uint256 public cellingMaxUSDPrice;
+
+  // MaxBanker per stake
+  uint256 public maxBankerPerStake;
+
+  // Staking available
+  uint256 public stakingAvailable;
+
+  // Stake strike price, scaled by 10e18
+  uint256 public stakeStrikePrice;
+
+  // Stake lockup time
+  uint256 public stakeLockupTime;
 
   /*** Contract Logic Starts Here */
 
@@ -90,8 +107,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     _;
   }
 
-  modifier onlyStrategy() {
-    require(isValidStrategy[msg.sender], "No strategy");
+  modifier onlyTreasuryContract() {
+    require(isValidStrategy[msg.sender] && msg.sender == IAddressManager(addressManager).treasuryContract(), "No treasury");
     _;
   }
 
@@ -126,6 +143,10 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
     // set redemptionDelayTime
     redemptionDelayTime = _redemptionDelayTime;
+
+    // initialize redemption request queue parameters
+    first = 1;
+    last = 0;
   }
 
   /**
@@ -266,11 +287,22 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Add redemption request to the queue
-   * @param _redemptionRequest redemption request
+   * @notice Increase MaxUSDLiabilities
+   * @param _amount USD amount to deposit
    */
-  function addRedemptionRequest(RedemptionRequest memory _redemptionRequest) external override onlyStrategy onlyTurnOn {
-    _redemptionRequestQueue.push(_redemptionRequest);
+  function increaseMaxUSDLiabilities(uint256 _amount) external override onlyTreasuryContract onlyTurnOn {
+    maxUSDLiabilities += _amount;
+  }
+
+  /**
+   * @notice Add redemption request to the queue
+   * @param _requestor redemption requestor
+   * @param _amount USD amount to redeem
+   * @param _requestedAt requested time
+   */
+  function addRedemptionRequest(address _requestor, uint256 _amount, uint256 _requestedAt) external override onlyTreasuryContract onlyTurnOn {
+    last++;
+    _redemptionRequestQueue[last] = RedemptionRequest({ requestor: _requestor, amount: _amount, requestedAt: _requestedAt });
   }
 
   /**
@@ -278,11 +310,14 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    * @param _maxUSDHolder MaxUSD holder
    */
   function getUserMaxUSDLiability(address _maxUSDHolder) external view override returns (uint256) {
-    address maxUSD = IAddressManager(addressManager).maxUSD();
-    uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
-    uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
+    // address maxUSD = IAddressManager(addressManager).maxUSD();
+    // uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
+    // uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
 
-    return maxUSDLiabilities / totalShare * holderShare;
+    // return maxUSDLiabilities / totalShare * holderShare;
+
+    // Assume that only one user(manager) deposits
+    return maxUSDLiabilities;
   }
 
   /**
@@ -304,17 +339,9 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    * @param _interestRate next interest rate
    * @param _startTime next rate start time
    */
-  function setNextInterestAndTime(uint256 _interestRate, uint256 _startTime) external onlyManager {
+  function setNextInterestRateAndTime(uint256 _interestRate, uint256 _startTime) external onlyManager {
     maxUSDNextInterestRate.interestRate = _interestRate;
     maxUSDNextInterestRate.nextRateStartTime = _startTime;
-  }
-
-  /**
-   * @notice Set MaxBanker token number per dollar scaled by 10e18
-   * @dev This is 1 / price
-   */
-  function setMaxBankerPerDollar(uint256 _maxBankerPerDollar) external {
-    maxBankerPerDollar = _maxBankerPerDollar;
   }
 
   /**
@@ -328,10 +355,27 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Remove redemption request to the queue
-   * @param _redemptionRequest redemption request
+   * @notice Decrease MaxUSDLiabilities
+   * @param _amount USD amount to redeem
    */
-  function _removeRedemptionRequest(RedemptionRequest memory _redemptionRequest) internal onlyTurnOn {}
+  function decreaseMaxUSDLiabilities(uint256 _amount) internal onlyTurnOn {
+    maxUSDLiabilities -= _amount;
+  }
+
+  /**
+   * @notice Remove redemption requet from the queue
+   * @return (address, uint256, uint256) redemption requestor, USD amount, requested time
+   */
+  function _removeRedemptionRequest() internal onlyTurnOn returns (address requestor, uint256 amount, unt256 requestedAt) {
+    require(last >= first, "Empty queue");
+
+    requestor = _redemptionRequestQueue[first].requestor;
+    amount = _redemptionRequestQueue[first].amount;
+    requestedAt = _redemptionRequestQueue[first].requestedAt;
+
+    delete _redemptionRequestQueue[first];
+    first++;
+  }
 
   /**
    * @notice Invest token in the strategy

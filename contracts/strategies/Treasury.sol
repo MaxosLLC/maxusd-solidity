@@ -71,20 +71,12 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
    * @notice Withdraw token from the protocol
    * @dev Only allowed token can be withdrawn
    * @dev Decrease user's insurance if _token is MaxBanker
-   * @param _token token address
    * @param _amount token amount
    */
-  function redeemDeposit(address _token, uint256 _amount) external override nonReentrant onlyManager {
-    require(isAllowedToken[_token], "Invalid token");
-    // require(_amount <= IBanker(IAddressManager(addressManager).bankerContract()).getUserMaxUSDLiability(msg.sender), "Invalid amount");
+  function redeemDeposit(uint256 _amount) external override nonReentrant onlyManager {
+    require(_amount <= IBanker(IAddressManager(addressManager).bankerContract()).getUserMaxUSDLiability(msg.sender), "Invalid amount");
 
-    // add redemption request to Banker
-    RedemptionRequest memory redemptionRequest;
-    redemptionRequest.beneficiary = msg.sender;
-    redemptionRequest.amount = _amount;
-    redemptionRequest.requestedAt = block.timestamp;
-
-    IBanker(IAddressManager(addressManager).bankerContract()).addRedemptionRequest(redemptionRequest);
+    IBanker(IAddressManager(addressManager).bankerContract()).addRedemptionRequest(msg.sender, _amount, block.timestamp);
 
     // // transfer token 
     // require(IERC20Upgradeable(_token).transfer(msg.sender, _amount));
