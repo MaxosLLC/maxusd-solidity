@@ -54,7 +54,7 @@ contract Strategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradea
 
   /**
    * @notice Returns asset value of the strategy
-   * @return (uint256) asset value of the strategy in USD
+   * @return (uint256) asset value of the strategy in USD, scaled by 10e2, Ex: 100 USD is represented by 10,000
    */
   function strategyAssetValue() external view override returns (uint256) {}
 }

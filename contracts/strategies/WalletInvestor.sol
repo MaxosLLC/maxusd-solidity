@@ -32,7 +32,7 @@ contract WalletInvestor is IStrategyAssetValue, Initializable {
 
   /**
    * @notice Update asset value of the strategy
-   * @param _strategyAssetValue Asset value of the strategy in USD
+   * @param _strategyAssetValue Asset value of the strategy in USD, scaled by 10e2, Ex: 100 USD is represented by 10,000
    */
   function updateStrategyAssetValue(uint256 _strategyAssetValue) external onlyInvestor {
     strategyAssetValue = _strategyAssetValue;

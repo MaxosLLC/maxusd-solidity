@@ -19,7 +19,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   struct StrategySettings {
     uint256 insuranceAP; // insurance allocation percentage, scaled by 10e2
     uint256 desiredAssetAP; // desired asset allocation percentage, scaled by 10e2
-    uint256 assetValue; // asset value in strategy, scaled by 10e2
+    uint256 assetValue; // asset value in strategy
     uint256 reportedAt; // last reported time
   }
 
@@ -72,7 +72,6 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   /*** Banker Settings Here */
 
   // MaxUSD annual interest rate
-  // Annual interest rate is increased as the interest is earned from the strategy
   InterestRate public maxUSDInterestRate;
   
   // MaxUSD next annual interest rate
@@ -194,7 +193,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    */
   function removeStrategy(address _strategy) external onlyManager {
     require(isValidStrategy[_strategy], "Not exist");
-    isValidStrategy[_strategy] = true;
+    isValidStrategy[_strategy] = false;
 
     for (uint256 i; i < strategies.length; i++) {
       if (strategies[i] == _strategy) {
@@ -323,12 +322,16 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   /**
    * @notice Get total asset values across the strategies
    * @dev Set every strategy value and update time
-   * @return (uint256) Total asset value
+   * @return (uint256) Total asset value scaled by 10e2, Ex: 100 USD is represented by 10,000
    */
-  function getTotalAssetValue() external view returns (uint256) {
+  function getTotalAssetValue() external returns (uint256) {
     uint256 totalAssetValue;
+    uint256 strategyAssetValue;
     for (uint256 i; i < strategies.length; i++) {
-      totalAssetValue += IStrategyAssetValue(strategies[i]).strategyAssetValue();
+      strategyAssetValue = IStrategyAssetValue(strategies[i]).strategyAssetValue();
+      totalAssetValue += strategyAssetValue;
+      strategySettings[strategies[i]].assetValue = strategyAssetValue;
+      strategySettings[strategies[i]].reportedAt = block.timestamp;
     }
 
     return totalAssetValue;
@@ -364,17 +367,19 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
   /**
    * @notice Remove redemption requet from the queue
-   * @return (address, uint256, uint256) redemption requestor, USD amount, requested time
+   * @return (address, uint256, uint256) requestor, amount, requestedAt
    */
-  function _removeRedemptionRequest() internal onlyTurnOn returns (address requestor, uint256 amount, unt256 requestedAt) {
+  function _removeRedemptionRequest() internal onlyTurnOn returns (address, uint256, uint256) {
     require(last >= first, "Empty queue");
 
-    requestor = _redemptionRequestQueue[first].requestor;
-    amount = _redemptionRequestQueue[first].amount;
-    requestedAt = _redemptionRequestQueue[first].requestedAt;
+    address requestor = _redemptionRequestQueue[first].requestor;
+    uint256 amount = _redemptionRequestQueue[first].amount;
+    uint256 requestedAt = _redemptionRequestQueue[first].requestedAt;
 
     delete _redemptionRequestQueue[first];
     first++;
+
+    return (requestor, amount, requestedAt);
   }
 
   /**

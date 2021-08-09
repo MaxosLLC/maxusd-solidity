@@ -63,8 +63,11 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
     // transfer token
     require(IERC20Upgradeable(_token).transferFrom(msg.sender, address(this), _amount));
 
-    // uint256 mintDepositPercentage = IBanker(IAddressManager(addressManager).bankerContract()).mintDepositPercentage();
     // mint MaxUSD/MaxBanker tokens according to the mintDepositPercentage
+    // uint256 mintDepositPercentage = IBanker(IAddressManager(addressManager).bankerContract()).mintDepositPercentage();
+
+    // Increase MaxUSDLiabilities
+    IBanker(IAddressManager(addressManager).bankerContract()).increaseMaxUSDLiabilities(_amount);
   }
 
   /**
@@ -123,12 +126,12 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
 
   /**
    * @notice Returns asset value of the Treasury
-   * @return (uint256) asset value of the Treasury in USD
+   * @return (uint256) asset value of the Treasury in USD, Ex: 100 USD is represented by 10,000
    */
   function strategyAssetValue() external view override returns (uint256) {
     uint256 assetValue;
     for (uint256 i; i < allowedTokens.length; i++) {
-      assetValue += IERC20Upgradeable(allowedTokens[i]).balanceOf(address(this)) / (10**IERC20Extended(allowedTokens[i]).decimals());
+      assetValue += IERC20Upgradeable(allowedTokens[i]).balanceOf(address(this)) * 100 / (10**IERC20Extended(allowedTokens[i]).decimals());
     }
 
     return assetValue;
