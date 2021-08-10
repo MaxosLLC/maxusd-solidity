@@ -19,4 +19,6 @@ interface IYearnUSDCVault {
   function maxAvailableShares() external view returns (uint256);
 
   function availableDepositLimit() external view returns (uint256);
+
+  function pricePerShare() external view returns (uint256);
 }
