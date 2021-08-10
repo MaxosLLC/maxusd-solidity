@@ -43,6 +43,7 @@
     "ts-generator": "^0.1.1"
   },
   "dependencies": {
+    "@chainlink/contracts": "^0.2.1",
     "@ethersproject/bignumber": "^5.3.0",
     "dotenv": "^10.0.0"
   }
