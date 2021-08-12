@@ -6,6 +6,7 @@ require("@openzeppelin/hardhat-upgrades");
 require("hardhat-gas-reporter");
 require("hardhat-abi-exporter");
 require("solidity-coverage");
+const envData = require("./key.json");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -25,13 +26,12 @@ task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, bre, runSuper) => {
   return input;
 });
 
-const infuraKey = process.env.INFURA_KEY || "";
+const { infuraKey, mnemonic } = envData;
 
 function nodeUrl(network) {
   return `https://${network}.infura.io/v3/${infuraKey}`;
 }
 
-let mnemonic = process.env.MNEMONIC || "";
 const accounts = mnemonic
   ? {
       mnemonic,
@@ -56,6 +56,7 @@ module.exports = {
       },
       forking: {
         url: nodeUrl("mainnet"),
+        blockNumber: 13005280,
       },
     },
     kovan: {
