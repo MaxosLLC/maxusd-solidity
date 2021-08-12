@@ -35,7 +35,7 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, Initializable,
   }
 
   function strategyAssetValue() external view override returns (uint256) {
-    return totalShares * yVault.pricePerShare();
+    return (totalShares * yVault.pricePerShare()) / 10**yVault.decimals();
   }
 
   function _deposit(uint256 _amount) internal returns (uint256) {
