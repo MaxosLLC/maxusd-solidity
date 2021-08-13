@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "../interfaces/IBanker.sol";
 import "../interfaces/IAddressManager.sol";
 import "../interfaces/IStrategyAssetValue.sol";
 
@@ -11,14 +12,14 @@ import "../interfaces/IStrategyAssetValue.sol";
  * @notice Banker Contract
  * @author Maxos
  */
-contract Banker is ReentrancyGuardUpgradeable {
+contract Banker is IBanker, ReentrancyGuardUpgradeable {
   /*** Storage Properties ***/
 
   // Strategy settings
   struct StrategySettings {
     uint256 insuranceAP; // insurance allocation percentage, scaled by 10e2
     uint256 desiredAssetAP; // desired asset allocation percentage, scaled by 10e2
-    uint256 assetValue; // asset value in strategy, scaled by 10e2
+    uint256 assetValue; // asset value in strategy
     uint256 reportedAt; // last reported time
   }
 
@@ -28,12 +29,18 @@ contract Banker is ReentrancyGuardUpgradeable {
     uint256 lastInterestPaymentTime; // last time that we paid interest
   }
 
-  // MaxUSD redemption queue to the strategy
-  struct RedemptionRequest {
-    address beneficiary; // redemption requestor
-    uint256 amount; // MaxUSD amount to redeem
-    uint256 requestedAt; // redemption request time
+  // Next interest rate
+  struct NextInterestRate {
+    uint256 interestRate; // next interest rate
+    uint256 nextRateStartTime;  // next rate start time
   }
+
+  // MaxUSD redemption queue to the strategy, defined in IBanker like this
+  // struct RedemptionRequest {
+  //   address beneficiary; // redemption requestor
+  //   uint256 amount; // MaxUSD amount to redeem
+  //   uint256 requestedAt; // redemption request time
+  // }
 
   // Strategy addresses
   address[] public strategies;
@@ -44,28 +51,53 @@ contract Banker is ReentrancyGuardUpgradeable {
   // Information per strategy
   mapping(address => StrategySettings) public strategySettings;
 
-  // MaxUSD annual interest rate
-  // Annual interest rate is increased as the interest is earned from the strategy
-  InterestRate public maxUSDinterestRate;
-
   // MaxUSD Liabilities
   uint256 public maxUSDLiabilities;
-
-  // Mint percentage of MaxUSD and MaxBanker, scaled by 10e2
-  // If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
-  uint256 public mintDepositPercentage;
 
   // Redemption request dealy time
   uint256 public redemptionDelayTime;
 
   // Redemption request queue
-  RedemptionRequest[] internal _redemptionRequestQueue;
+  mapping(uint256 => RedemptionRequest) internal _redemptionRequestQueue;
+  uint256 first;
+  uint256 last;
 
   // Turn on/off option
   bool public isTurnOff;
 
   // Address manager
   address public addressManager;
+
+
+  /*** Banker Settings Here */
+
+  // MaxUSD annual interest rate
+  InterestRate public maxUSDInterestRate;
+  
+  // MaxUSD next annual interest rate
+  NextInterestRate public maxUSDNextInterestRate;
+
+  // Mint percentage of MaxUSD and MaxBanker, scaled by 10e2
+  // If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
+  uint256 public override mintDepositPercentage;
+
+  // MaxBanker price, scaled by 10e18
+  uint256 public maxBankerPrice;
+
+  // Celling MaxSD price, scaled by 10e18
+  uint256 public cellingMaxUSDPrice;
+
+  // MaxBanker per stake
+  uint256 public maxBankerPerStake;
+
+  // Staking available
+  uint256 public stakingAvailable;
+
+  // Stake strike price, scaled by 10e18
+  uint256 public stakeStrikePrice;
+
+  // Stake lockup time
+  uint256 public stakeLockupTime;
 
   /*** Contract Logic Starts Here */
 
@@ -74,8 +106,8 @@ contract Banker is ReentrancyGuardUpgradeable {
     _;
   }
 
-  modifier onlyStrategy() {
-    require(isValidStrategy[msg.sender], "No strategy");
+  modifier onlyTreasuryContract() {
+    require(isValidStrategy[msg.sender] && msg.sender == IAddressManager(addressManager).treasuryContract(), "No treasury");
     _;
   }
 
@@ -105,11 +137,15 @@ contract Banker is ReentrancyGuardUpgradeable {
     mintDepositPercentage = _mintDepositPercentage;
 
     // set initial interest rate
-    maxUSDinterestRate.interestRate = 0;
-    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
+    maxUSDInterestRate.interestRate = 0;
+    maxUSDInterestRate.lastInterestPaymentTime = block.timestamp;
 
     // set redemptionDelayTime
     redemptionDelayTime = _redemptionDelayTime;
+
+    // initialize redemption request queue parameters
+    first = 1;
+    last = 0;
   }
 
   /**
@@ -141,14 +177,33 @@ contract Banker is ReentrancyGuardUpgradeable {
     address _strategy,
     uint256 _insuranceAP,
     uint256 _desiredAssetAP
-  ) external onlyManager {}
+  ) external onlyManager {
+    require(!isValidStrategy[_strategy], "Already exists");
+    isValidStrategy[_strategy] = true;
+
+    strategies.push(_strategy);
+    strategySettings[_strategy].insuranceAP = _insuranceAP;
+    strategySettings[_strategy].desiredAssetAP = _desiredAssetAP;
+  }
 
   /**
    * @notice Remove strategy
    * @dev Set isValidStrategy to false
    * @param _strategy Strategy address
    */
-  function removeStrategy(address _strategy) external onlyManager {}
+  function removeStrategy(address _strategy) external onlyManager {
+    require(isValidStrategy[_strategy], "Not exist");
+    isValidStrategy[_strategy] = false;
+
+    for (uint256 i; i < strategies.length; i++) {
+      if (strategies[i] == _strategy) {
+        strategies[i] = strategies[strategies.length - 1];
+        strategies.pop();
+
+        break;
+      }
+    }
+  }
 
   /**
    * @notice Set insurance allocation percentage to the strategy
@@ -206,12 +261,11 @@ contract Banker is ReentrancyGuardUpgradeable {
    */
   function payInterest(uint256 _interestRate) external onlyManager onlyTurnOn {
     // update interest rate
-    maxUSDinterestRate.interestRate = _interestRate;
-    maxUSDinterestRate.lastInterestPaymentTime = block.timestamp;
+    maxUSDInterestRate.interestRate = _interestRate;
+    maxUSDInterestRate.lastInterestPaymentTime = block.timestamp;
 
     // update MaxUSDLiabilities
-    uint256 passedDays = (block.timestamp - maxUSDinterestRate.lastInterestPaymentTime) / 1 days;
-    maxUSDLiabilities *= (1 + _interestRate/10000) ** (passedDays / 365);
+    maxUSDLiabilities = calculateMaxUSDLiabilities(_interestRate);
   }
 
   /**
@@ -232,42 +286,101 @@ contract Banker is ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Add redemption request to the queue
-   * @param _redemptionRequest redemption request
+   * @notice Increase MaxUSDLiabilities
+   * @param _amount USD amount to deposit
    */
-  function addRedemptionRequest(RedemptionRequest memory _redemptionRequest) external onlyStrategy onlyTurnOn {}
+  function increaseMaxUSDLiabilities(uint256 _amount) external override onlyTreasuryContract onlyTurnOn {
+    maxUSDLiabilities += _amount;
+  }
+
+  /**
+   * @notice Add redemption request to the queue
+   * @param _requestor redemption requestor
+   * @param _amount USD amount to redeem
+   * @param _requestedAt requested time
+   */
+  function addRedemptionRequest(address _requestor, uint256 _amount, uint256 _requestedAt) external override onlyTreasuryContract onlyTurnOn {
+    last++;
+    _redemptionRequestQueue[last] = RedemptionRequest({ requestor: _requestor, amount: _amount, requestedAt: _requestedAt });
+  }
 
   /**
    * @notice Get the MaxUSD holder's current MaxUSDLiablity
    * @param _maxUSDHolder MaxUSD holder
    */
-  function getUserMaxUSDLiability(address _maxUSDHolder) external view returns (uint256) {
-    address maxUSD = IAddressManager(addressManager).maxUSD();
-    uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
-    uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
+  function getUserMaxUSDLiability(address _maxUSDHolder) external view override returns (uint256) {
+    // address maxUSD = IAddressManager(addressManager).maxUSD();
+    // uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
+    // uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
 
-    return maxUSDLiabilities / totalShare * holderShare;
+    // return maxUSDLiabilities / totalShare * holderShare;
+
+    // Assume that only one user(manager) deposits
+    return maxUSDLiabilities;
   }
 
   /**
    * @notice Get total asset values across the strategies
    * @dev Set every strategy value and update time
-   * @return (uint256) Total asset value
+   * @return (uint256) Total asset value scaled by 10e2, Ex: 100 USD is represented by 10,000
    */
-  function getTotalAssetValue() external view returns (uint256) {
+  function getTotalAssetValue() external returns (uint256) {
     uint256 totalAssetValue;
+    uint256 strategyAssetValue;
     for (uint256 i; i < strategies.length; i++) {
-      totalAssetValue += IStrategyAssetValue(strategies[i]).strategyAssetValue();
+      strategyAssetValue = IStrategyAssetValue(strategies[i]).strategyAssetValue();
+      totalAssetValue += strategyAssetValue;
+      strategySettings[strategies[i]].assetValue = strategyAssetValue;
+      strategySettings[strategies[i]].reportedAt = block.timestamp;
     }
 
     return totalAssetValue;
   }
 
   /**
-   * @notice Remove redemption request to the queue
-   * @param _redemptionRequest redemption request
+   * @notice Set next interest rate and start time
+   * @param _interestRate next interest rate
+   * @param _startTime next rate start time
    */
-  function _removeRedemptionRequest(RedemptionRequest memory _redemptionRequest) internal onlyTurnOn {}
+  function setNextInterestRateAndTime(uint256 _interestRate, uint256 _startTime) external onlyManager {
+    maxUSDNextInterestRate.interestRate = _interestRate;
+    maxUSDNextInterestRate.nextRateStartTime = _startTime;
+  }
+
+  /**
+   * @notice Calculate MaxUSDLiabilities with the interest rate given
+   * @param _interestRate Interest rate scaled by 10e2
+   * @return (uint256) MaxUSDLiabilities
+   */
+  function calculateMaxUSDLiabilities(uint256 _interestRate) public view returns (uint256) {
+    uint256 passedDays = (block.timestamp - maxUSDInterestRate.lastInterestPaymentTime) / 1 days;
+    return maxUSDLiabilities * (1 + _interestRate/10000) ** (passedDays / 365);
+  }
+
+  /**
+   * @notice Decrease MaxUSDLiabilities
+   * @param _amount USD amount to redeem
+   */
+  function decreaseMaxUSDLiabilities(uint256 _amount) internal onlyTurnOn {
+    maxUSDLiabilities -= _amount;
+  }
+
+  /**
+   * @notice Remove redemption requet from the queue
+   * @return (address, uint256, uint256) requestor, amount, requestedAt
+   */
+  function _removeRedemptionRequest() internal onlyTurnOn returns (address, uint256, uint256) {
+    require(last >= first, "Empty queue");
+
+    address requestor = _redemptionRequestQueue[first].requestor;
+    uint256 amount = _redemptionRequestQueue[first].amount;
+    uint256 requestedAt = _redemptionRequestQueue[first].requestedAt;
+
+    delete _redemptionRequestQueue[first];
+    first++;
+
+    return (requestor, amount, requestedAt);
+  }
 
   /**
    * @notice Invest token in the strategy
