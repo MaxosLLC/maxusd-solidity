@@ -15,6 +15,19 @@
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "c__0xc6f8df47",
+        "type": "bytes32"
+      }
+    ],
+    "name": "c_0xc6f8df47",
+    "outputs": [],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_vault",
         "type": "address"
@@ -25,7 +38,7 @@
         "type": "address"
       }
     ],
-    "name": "initializable",
+    "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

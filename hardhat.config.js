@@ -26,7 +26,7 @@ task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, bre, runSuper) => {
   return input;
 });
 
-const { infuraKey, mnemonic } = envData;
+const { infuraKey, mnemonic, alchemyKey } = envData;
 
 function nodeUrl(network) {
   return `https://${network}.infura.io/v3/${infuraKey}`;
@@ -55,7 +55,7 @@ module.exports = {
         evmVersion: "byzantium",
       },
       forking: {
-        url: nodeUrl("mainnet"),
+        url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyKey}`,
         blockNumber: 13005280,
       },
     },

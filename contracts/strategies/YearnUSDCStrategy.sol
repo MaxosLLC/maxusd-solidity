@@ -16,9 +16,9 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, Initializable,
   IYearnUSDCVault public yVault;
   IERC20 public baseToken;
 
-  uint256 public totalShares = 0;
+  uint256 public totalShares;
 
-  function initializable(address _vault, address _token) public initializer {
+  function initialize(address _vault, address _token) public initializer {
     __ReentrancyGuard_init();
     require(IYearnUSDCVault(_vault).token() == _token, "vault and base token should be matched");
     yVault = IYearnUSDCVault(_vault);
@@ -41,8 +41,9 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, Initializable,
   function _deposit(uint256 _amount) internal returns (uint256) {
     require(_amount > 0, "amount should be above zero");
     require(_amount <= yVault.availableDepositLimit(), "amount should be lower than limit");
-    require(_amount <= baseToken.balanceOf(address(this)), "amout should be lower than balance");
+    require(_amount <= baseToken.balanceOf(address(this)), "amount should be lower than balance");
 
+    baseToken.approve(address(yVault), _amount);
     uint256 _shares = yVault.deposit(_amount);
     totalShares += _shares;
 
