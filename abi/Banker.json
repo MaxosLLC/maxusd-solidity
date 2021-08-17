@@ -84,19 +84,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "c__0xa5d6cd50",
-        "type": "bytes32"
-      }
-    ],
-    "name": "c_0xa5d6cd50",
-    "outputs": [],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "_interestRate",
         "type": "uint256"

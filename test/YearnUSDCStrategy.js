@@ -1,16 +1,11 @@
 const chai = require("chai");
 const { solidity } = require("ethereum-waffle");
 const { expect } = chai;
-const { time } = require("@openzeppelin/test-helpers");
-const { hre, ethers, upgrades } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 const { parseUnits, parseEther } = require("@ethersproject/units");
-const IYearnUSDCVaultABI = require("../abi/IYearnUSDCVault.json");
-const IUniswapV2Router02ABI = require("../abi/IUniswapV2Router02.json");
-const IERC20ABI = require("../abi/IERC20.json");
-const { BigNumber } = require("ethers");
+const { swapETHForExactTokens } = require("./common/UniswapV2Router");
 chai.use(solidity);
 
-const V2_ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const yvUSDC_ADDRESS = "0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9";
 
@@ -29,35 +24,15 @@ describe("YearnUSDCStrategy", function () {
   before(async function () {
     [deployer] = await ethers.getSigners();
 
-    usdcToken = await ethers.getContractAt(IERC20ABI, USDC_ADDRESS, deployer);
-    yvUSDCVault = await ethers.getContractAt(IYearnUSDCVaultABI, yvUSDC_ADDRESS, deployer);
+    usdcToken = await ethers.getContractAt("IERC20", USDC_ADDRESS, deployer);
+    yvUSDCVault = await ethers.getContractAt("IYearnUSDCVault", yvUSDC_ADDRESS, deployer);
     YearnUSDCStrategy = await ethers.getContractFactory("YearnUSDCStrategy");
-    usdcStrategy = await upgrades.deployProxy(YearnUSDCStrategy, [yvUSDC_ADDRESS, usdcToken.address]);
-
-    const v2Router = await ethers.getContractAt(IUniswapV2Router02ABI, V2_ROUTER, deployer);
-    const weth = await v2Router.WETH();
-    const timestamp = new Date().getTime();
-    await v2Router.swapETHForExactTokens(
-      parseUnits("10000", 6),
-      [weth, USDC_ADDRESS],
-      usdcStrategy.address,
-      Math.round(timestamp / 1000) + 10 * 60,
-      {
-        value: parseEther("10"),
-      },
-    );
+    usdcStrategy = await upgrades.deployProxy(YearnUSDCStrategy);
+    await swapETHForExactTokens(parseEther("10"), parseUnits("10000", 6), USDC_ADDRESS, usdcStrategy.address, deployer);
   });
 
   describe("# initialize", function () {
-    it("should set correct arugements", async function () {
-      await expect(upgrades.deployProxy(YearnUSDCStrategy, [yvUSDC_ADDRESS, USDT_ADDRESS])).to.revertedWith(
-        "vault and base token should be matched",
-      );
-    });
-
     it("should be able to deploy as proxy", async function () {
-      expect(await usdcStrategy.yVault()).to.eq(yvUSDC_ADDRESS);
-      expect(await usdcStrategy.baseToken()).to.eq(USDC_ADDRESS);
       expect(await usdcStrategy.totalShares()).to.eq(0);
     });
   });
@@ -96,7 +71,12 @@ describe("YearnUSDCStrategy", function () {
       const totalShares = await usdcStrategy.totalShares();
       const pricePerShare = await yvUSDCVault.pricePerShare();
 
-      expect(strategyAssetValue).to.eq(totalShares.mul(pricePerShare).div(10 ** 6));
+      expect(strategyAssetValue).to.eq(
+        totalShares
+          .mul(pricePerShare)
+          .mul(10 ** 2)
+          .div(10 ** 6),
+      );
     });
   });
 

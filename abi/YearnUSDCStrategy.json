@@ -1,7 +1,20 @@
 [
   {
     "inputs": [],
-    "name": "baseToken",
+    "name": "DECIMALS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "USDC_TOKEN",
     "outputs": [
       {
         "internalType": "contract IERC20",
@@ -13,31 +26,20 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "USDC_VAULT",
+    "outputs": [
       {
-        "internalType": "bytes32",
-        "name": "c__0xc6f8df47",
-        "type": "bytes32"
+        "internalType": "contract IYearnUSDCVault",
+        "name": "",
+        "type": "address"
       }
     ],
-    "name": "c_0xc6f8df47",
-    "outputs": [],
-    "stateMutability": "pure",
+    "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_vault",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_token",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -95,19 +97,6 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "yVault",
-    "outputs": [
-      {
-        "internalType": "contract IYearnUSDCVault",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
