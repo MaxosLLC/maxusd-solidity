@@ -1,12 +1,14 @@
-const fs = require("fs");
-const path = require("path");
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ethers");
 require("@openzeppelin/hardhat-upgrades");
 require("hardhat-gas-reporter");
 require("hardhat-abi-exporter");
 require("solidity-coverage");
-const envData = require("./key.json");
+require("@nomiclabs/hardhat-etherscan");
+require('dotenv').config();
+
+// *** PK STATED BELOW IS DUMMY PK EXCLUSIVELY FOR TESTING PURPOSES ***
+// const PK = `0x${"32c069bf3d38a060eacdc072eecd4ef63f0fc48895afbacbe185c97037789875"}`
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -26,18 +28,6 @@ task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, bre, runSuper) => {
   return input;
 });
 
-const { infuraKey, mnemonic } = envData;
-
-function nodeUrl(network) {
-  return `https://${network}.infura.io/v3/${infuraKey}`;
-}
-
-const accounts = mnemonic
-  ? {
-      mnemonic,
-    }
-  : undefined;
-
 module.exports = {
   defaultNetwork: "hardhat",
   gasReporter: {
@@ -54,30 +44,37 @@ module.exports = {
         },
         evmVersion: "byzantium",
       },
-      forking: {
-        url: nodeUrl("mainnet"),
-        blockNumber: 13005280,
-      },
-    },
-    kovan: {
-      accounts,
-      url: nodeUrl("kovan"),
-    },
-    goerli: {
-      accounts,
-      url: nodeUrl("goerli"),
+      // forking: {
+      //   url: 'https://rinkeby.infura.io/v3/34ee2e319e7945caa976d4d1e24db07f',
+      //   blockNumber: 13005280,
+      // },
     },
     rinkeby: {
-      accounts,
-      url: nodeUrl("rinkeby"),
+      // Infura public nodes
+      url: 'https://rinkeby.infura.io/v3/34ee2e319e7945caa976d4d1e24db07f',
+      accounts: [process.env.PK || PK],
+      chainId: 4,
+      gasPrice: 40000000000,
+      timeout: 50000
     },
     ropsten: {
-      accounts,
-      url: nodeUrl("ropsten"),
+      // Infura public nodes
+      url: 'https://ropsten.infura.io/v3/34ee2e319e7945caa976d4d1e24db07f',
+      accounts: [process.env.PK || PK],
+      chainId: 3,
+      gasPrice: 40000000000,
+      timeout: 50000
     },
     mainnet: {
-      accounts,
-      url: nodeUrl("mainnet"),
+      // Infura public nodes
+      url: 'https://mainnet.infura.io/v3/1692a3b8ad92406189c2c7d2b01660bc',
+      accounts: [process.env.PK || PK],
+      chainId: 1,
+      gasPrice: 115000000000, // 44 GWEI gas price for deployment.
+      timeout: 10000000
+    },
+    local: {
+      url: 'http://localhost:8545',
     },
     coverage: {
       url: "http://127.0.0.1:8555",
@@ -87,7 +84,7 @@ module.exports = {
     version: "0.8.3",
     settings: {
       optimizer: {
-        enabled: false,
+        enabled: true,
         runs: 200,
       },
     },
@@ -100,9 +97,6 @@ module.exports = {
     coverageJson: "./coverage.json",
     artifacts: "./artifacts",
   },
-  namedAccounts: {
-    deployer: 0,
-  },
   mocha: {
     timeout: 50000,
   },
@@ -112,4 +106,7 @@ module.exports = {
     flat: true,
     spacing: 2,
   },
+  etherscan: {
+    apiKey: process.env.API_KEY
+  }
 };

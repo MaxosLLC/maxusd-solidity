@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesCompUpgradeable.sol";
 
-import "../interfaces/ITransferApprover.sol";
+import "../interfaces/IOwnerOnlyApprover.sol";
 
 /**
  * @notice MaxBanker Contract
@@ -21,7 +21,7 @@ contract MaxBanker is PausableUpgradeable, OwnableUpgradeable, ERC20VotesCompUpg
 
   /*** Storage Properties ***/
   address public mintContract;
-  address public transferApprover;
+  address public ownerOnlyApprover;
 
   /*** Contract Logic Starts Here */
 
@@ -83,10 +83,10 @@ contract MaxBanker is PausableUpgradeable, OwnableUpgradeable, ERC20VotesCompUpg
 
   /**
    * @notice Set TransferApprovr contract address
-   * @param _transferApprover TransferApprover contract address
+   * @param _ownerOnlyApprover OnlyOnwerApprover contract address
    */
-  function setTransferApprover(address _transferApprover) external onlyOwner {
-    transferApprover = _transferApprover;
+  function setOwnerOnlyApprover(address _ownerOnlyApprover) external onlyOwner {
+    ownerOnlyApprover = _ownerOnlyApprover;
   }
 
   /**
@@ -96,8 +96,8 @@ contract MaxBanker is PausableUpgradeable, OwnableUpgradeable, ERC20VotesCompUpg
    * @param amount token amount
    */
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override whenNotPaused {
-      if (transferApprover != address(0)) {
-        require(ITransferApprover(transferApprover).checkTransfer(from, to));
+      if (ownerOnlyApprover != address(0)) {
+        require(IOwnerOnlyApprover(ownerOnlyApprover).checkTransfer(from, to));
       }
     }
 }
