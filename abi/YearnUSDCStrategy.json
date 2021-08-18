@@ -39,6 +39,19 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "c__0xc6f8df47",
+        "type": "bytes32"
+      }
+    ],
+    "name": "c_0xc6f8df47",
+    "outputs": [],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "initialize",
     "outputs": [],
