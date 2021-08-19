@@ -13,4 +13,6 @@ interface IAddressManager {
   function maxBanker() external view returns (address);
 
   function investor() external view returns (address);
+
+  function anchorContract() external view returns (address);
 }

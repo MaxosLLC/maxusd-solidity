@@ -26,6 +26,9 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   // Investor
   address public override investor;
 
+  // Anchor
+  address public override anchorContract;
+
   /*** Contract Logic Starts Here */
 
   function initialize(address _manager) public initializer {
@@ -80,5 +83,13 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
    */
   function setInvestor(address _investor) external onlyOwner {
     investor = _investor;
+  }
+
+  /**
+   * @notice Set Anchor address
+   * @param _anchor Anchor address
+   */
+  function setAnchor(address _anchor) external onlyOwner {
+    anchorContract = _anchor;
   }
 }
