@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+import "../interfaces/IAddressManager.sol";
 import "../interfaces/IStrategyBase.sol";
 import "../interfaces/IStrategyAssetValue.sol";
 import "../interfaces/IYearnUSDCVault.sol";
@@ -16,39 +17,68 @@ import "../interfaces/IYearnUSDCVault.sol";
 contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradeable {
   using SafeERC20 for IERC20;
 
+  /*** Events ***/
+  event InvestYearnUSDCStrategy(uint256 amount);
+  event RedeemYearnUSDCStrategy(address indexed beneficiary, uint256 amount);
+
+  /*** Constants ***/
+
+  // Yearn USDC vault
+  IYearnUSDCVault public constant USDC_VAULT = IYearnUSDCVault(0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9);
+
+  // USDC token
+  IERC20 public constant  USDC_TOKEN = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+
+  /*** Storage Properties ***/
+
   // Total shares for the investment of Yearn USDC vault
   uint256 public totalShares;
 
-  // Yearn USDC vault interacted with the strategy
-  IYearnUSDCVault public constant USDC_VAULT = IYearnUSDCVault(0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9);
+  // Address manager
+  address public addressManager;
 
-  // USDC token interacted with the strategy
-  IERC20 public constant USDC_TOKEN = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+  /*** Contract Logic Starts Here */
 
-  // Decimal number for total shares
-  uint256 public constant DECIMALS = 2;
+  modifier onlyBanker() {
+    require(msg.sender == IAddressManager(addressManager).bankerContract(), "No banker");
+    _;
+  } 
 
-  function initialize() public initializer {
-    totalShares = 0;
+  function initialize(address _addressManager) public initializer {
+    __ReentrancyGuard_init();
+
+    addressManager = _addressManager;
   }
 
   /**
-   * @notice Invest token into Yearn USDC vault
-   * @dev Token is transferred from the banker
-   * @param amount {uint256} USD amount to invest
+   * @notice Invest token in Yearn USDC vault
+   * @param _amount USD amount to invest
    */
-  function invest(uint256 amount) external override nonReentrant {
-    _deposit(amount);
+  function invest(uint256 _amount) external override nonReentrant onlyBanker {
+    require(_amount <= USDC_VAULT.availableDepositLimit(), "Limit overflow");
+    require(_amount > 0 && _amount <= USDC_TOKEN.balanceOf(address(this)), "Invalid amount");
+
+    USDC_TOKEN.approve(address(USDC_VAULT), _amount);
+    uint256 shares = USDC_VAULT.deposit(_amount);
+    totalShares += shares;
+
+    emit InvestYearnUSDCStrategy(_amount);
   }
 
   /**
    * @notice Redeem token from Yearn USDC vault and return it to "beneficiary"
-   * @dev Transfer min(strategy balance, redemption amount) amount to requestor
-   * @param beneficiary {address} Redemption requestor
-   * @param amount {uint256} USD amount to redeem
+   * @param _beneficiary Redemption requestor
+   * @param _amount USD amount to redeem
    */
-  function redeem(address beneficiary, uint256 amount) external override nonReentrant {
-    _withdraw(amount, beneficiary);
+  function redeem(address _beneficiary, uint256 _amount) external override nonReentrant onlyBanker {
+    uint256 _shares = _amount * 10**USDC_VAULT.decimals() / USDC_VAULT.pricePerShare();
+    require(_shares > 0 && _shares <= totalShares, "Invalid amount");
+    
+    uint256 amount = USDC_VAULT.withdraw(_shares);
+    totalShares -= _shares;
+    USDC_TOKEN.safeTransfer(_beneficiary, amount);
+
+    emit RedeemYearnUSDCStrategy(_beneficiary, amount);
   }
 
   /**
@@ -56,29 +86,6 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuar
    * @return (uint256) asset value of the strategy in USD, scaled by 10e2, Ex: 100 USD is represented by 10,000
    */
   function strategyAssetValue() external view override returns (uint256) {
-    return (totalShares * USDC_VAULT.pricePerShare() * 10**DECIMALS) / 10**USDC_VAULT.decimals();
-  }
-
-  function _deposit(uint256 _amount) internal returns (uint256) {
-    require(_amount > 0, "amount should be above zero");
-    require(_amount <= USDC_VAULT.availableDepositLimit(), "amount should be lower than limit");
-    require(_amount <= USDC_TOKEN.balanceOf(address(this)), "amount should be lower than balance");
-
-    USDC_TOKEN.approve(address(USDC_VAULT), _amount);
-    uint256 _shares = USDC_VAULT.deposit(_amount);
-    totalShares += _shares;
-
-    return _amount;
-  }
-
-  function _withdraw(uint256 _amount, address _beneficiary) internal returns (uint256) {
-    uint256 _shares = (_amount * (10**USDC_VAULT.decimals())) / USDC_VAULT.pricePerShare();
-    require(_shares > 0, "shares should be above zero");
-    require(_shares <= totalShares, "shares should be lower than total shares");
-    _amount = USDC_VAULT.withdraw(_shares);
-    totalShares -= _shares;
-    USDC_TOKEN.safeTransfer(_beneficiary, _amount);
-
-    return _amount;
+    return (totalShares * USDC_VAULT.pricePerShare() * 100) / 10**USDC_VAULT.decimals();
   }
 }

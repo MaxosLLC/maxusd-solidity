@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "../interfaces/IBanker.sol";
 import "../interfaces/IAddressManager.sol";
 import "../interfaces/IStrategyAssetValue.sol";
+import "../interfaces/IStrategyBase.sol";
 
 /**
  * @notice Banker Contract
@@ -59,8 +60,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
   // Redemption request queue
   mapping(uint256 => RedemptionRequest) internal _redemptionRequestQueue;
-  uint256 first;
-  uint256 last;
+  uint256 private first;
+  uint256 private last;
 
   // Turn on/off option
   bool public isTurnOff;
@@ -98,6 +99,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
   // Stake lockup time
   uint256 public stakeLockupTime;
+
 
   /*** Contract Logic Starts Here */
 
@@ -215,12 +217,20 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     onlyManager
     onlyTurnOn
   {
-    require(_strategies.length == _insuranceAPs.length, "data error");
+    require(_strategies.length == _insuranceAPs.length, "Data error");
 
+    // set insuranceAP
     for (uint256 i; i < _strategies.length; i++) {
       require(isValidStrategy[_strategies[i]], "Invalid strategy");
       strategySettings[_strategies[i]].insuranceAP = _insuranceAPs[i];
     }
+
+    // check if insuranceAP isn't overflowed
+    uint256 sumInsuranceAP;
+    for (uint256 j; j < strategies.length; j++) {
+      sumInsuranceAP += strategySettings[strategies[j]].insuranceAP;
+    }
+    require(sumInsuranceAP <= 10000, "InsuranceAP overflow");
   }
 
   /**
@@ -235,8 +245,20 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     onlyTurnOn
     nonReentrant
   {
-    // invest()
-    // redeem()
+    require(_strategies.length == _desiredAssetAPs.length, "Data error");
+
+    // set desiredAssetAP
+    for (uint256 i; i < _strategies.length; i++) {
+      require(isValidStrategy[_strategies[i]], "Invalid strategy");
+      strategySettings[_strategies[i]].desiredAssetAP = _desiredAssetAPs[i];
+    }
+
+    // check if desiredAssetAP isn't overflowed
+    uint256 sumDesiredAssetAP;
+    for (uint256 j; j < strategies.length; j++) {
+      sumDesiredAssetAP += strategySettings[strategies[j]].desiredAssetAP;
+    }
+    require(sumDesiredAssetAP <= 10000, "DesiredAssetAP overflow");
   }
 
   /**
@@ -253,6 +275,46 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   ) external onlyManager onlyTurnOn nonReentrant {
     // invest()
     // redeem()
+  }
+
+  /**
+   * @notice Allocate assets to strategies
+   */
+  function allocate() external onlyManager onlyTurnOn nonReentrant {
+    int totalAmountToAllocate;
+
+    uint256 totalAssetValue = getTotalAssetValue();
+    for (uint256 i; i < strategies.length; i++) {
+      totalAmountToAllocate += int(strategySettings[strategies[i]].assetValue - totalAssetValue * strategySettings[strategies[i]].desiredAssetAP);
+    }
+    
+    require(totalAmountToAllocate != 0);
+
+    int strategyAmountToAllocate;
+    if  (totalAmountToAllocate > 0) {
+      // invest
+      for (uint256 j = 0; j <  strategies.length; j++) {
+        strategyAmountToAllocate = int(totalAssetValue * strategySettings[strategies[j]].desiredAssetAP - strategySettings[strategies[j]].assetValue);
+        if (strategyAmountToAllocate > 0) {
+          totalAmountToAllocate -= strategyAmountToAllocate;
+          IStrategyBase(strategies[j]).invest(uint256(strategyAmountToAllocate));
+        }
+
+        if (strategyAmountToAllocate == 0) break;
+      }
+    } else {
+      // // redeem
+      // for (uint256 j = 0; j <  strategies.length; j++) {
+      //   strategyAmountToAllocate = int(strategySettings[strategies[j]].assetValue - totalAssetValue * strategySettings[strategies[j]].desiredAssetAP);
+      //   if (strategyAmountToAllocate > 0) {
+      //     totalAmountToAllocate += strategyAmountToAllocate;
+      //     // TODO: determine beneficiary
+      //     IStrategyBase(strategies[j]).redeem(address(this), uint256(strategyAmountToAllocate));
+      //   }
+
+      //   if (strategyAmountToAllocate == 0) break;
+      // }
+    }
   }
 
   /**
@@ -320,11 +382,21 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
+   * @notice Set next interest rate and start time
+   * @param _interestRate next interest rate
+   * @param _startTime next rate start time
+   */
+  function setNextInterestRateAndTime(uint256 _interestRate, uint256 _startTime) external onlyManager {
+    maxUSDNextInterestRate.interestRate = _interestRate;
+    maxUSDNextInterestRate.nextRateStartTime = _startTime;
+  }
+
+  /**
    * @notice Get total asset values across the strategies
    * @dev Set every strategy value and update time
    * @return (uint256) Total asset value scaled by 10e2, Ex: 100 USD is represented by 10,000
    */
-  function getTotalAssetValue() external returns (uint256) {
+  function getTotalAssetValue() public returns (uint256) {
     uint256 totalAssetValue;
     uint256 strategyAssetValue;
     for (uint256 i; i < strategies.length; i++) {
@@ -335,16 +407,6 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     }
 
     return totalAssetValue;
-  }
-
-  /**
-   * @notice Set next interest rate and start time
-   * @param _interestRate next interest rate
-   * @param _startTime next rate start time
-   */
-  function setNextInterestRateAndTime(uint256 _interestRate, uint256 _startTime) external onlyManager {
-    maxUSDNextInterestRate.interestRate = _interestRate;
-    maxUSDNextInterestRate.nextRateStartTime = _startTime;
   }
 
   /**
@@ -366,11 +428,11 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Remove redemption requet from the queue
+   * @notice Remove redemption request from the queue
    * @return (address, uint256, uint256) requestor, amount, requestedAt
    */
   function _removeRedemptionRequest() internal onlyTurnOn returns (address, uint256, uint256) {
-    require(last >= first, "Empty queue");
+    require(last >= first, "Empty redemption queue");
 
     address requestor = _redemptionRequestQueue[first].requestor;
     uint256 amount = _redemptionRequestQueue[first].amount;
@@ -381,18 +443,4 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
     return (requestor, amount, requestedAt);
   }
-
-  /**
-   * @notice Invest token in the strategy
-   * @param _strategy Strategy address to invest
-   * @param _amount Token amount
-   */
-  function _invest(address _strategy, uint256 _amount) internal onlyTurnOn {}
-
-  /**
-   * @notice Redeem token from the strategy
-   * @param _strategy Strategy address to redeem
-   * @param _amount Token amount
-   */
-  function _redeem(address _strategy, uint256 _amount) internal onlyTurnOn {}
 }

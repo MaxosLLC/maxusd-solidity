@@ -26,6 +26,9 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   // Investor
   address public override investor;
 
+  // Strategies
+  address public override yearnUSDCStrategy;
+
   /*** Contract Logic Starts Here */
 
   function initialize(address _manager) public initializer {
@@ -80,5 +83,13 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
    */
   function setInvestor(address _investor) external onlyOwner {
     investor = _investor;
+  }
+
+  /**
+   * @notice Set Yearn USDC Strategy address
+   * @param _yearnUSDCStrategy Yearn USDC Strategy address
+   */
+  function setYearnUSDCStrategy(address _yearnUSDCStrategy) external onlyOwner {
+    yearnUSDCStrategy = _yearnUSDCStrategy;
   }
 }
