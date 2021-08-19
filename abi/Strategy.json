@@ -16,11 +16,11 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "c__0x3e27443b",
+        "name": "c__0x4e2b68f1",
         "type": "bytes32"
       }
     ],
-    "name": "c_0x3e27443b",
+    "name": "c_0x4e2b68f1",
     "outputs": [],
     "stateMutability": "pure",
     "type": "function"

@@ -28,6 +28,21 @@ task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, bre, runSuper) => {
   return input;
 });
 
+const infuraKey = process.env.INFURA_KEY;
+const mnemonic = process.env.MNEMONIC;
+const alchemyKey = process.env.ALCHEMY_KEY;
+
+function nodeUrl(network) {
+  return `https://${network}.infura.io/v3/${infuraKey}`;
+}
+
+const accounts = mnemonic
+  ? {
+      mnemonic,
+    }
+  : undefined;
+
+
 module.exports = {
   defaultNetwork: "hardhat",
   gasReporter: {
@@ -44,10 +59,18 @@ module.exports = {
         },
         evmVersion: "byzantium",
       },
-      // forking: {
-      //   url: 'https://rinkeby.infura.io/v3/34ee2e319e7945caa976d4d1e24db07f',
-      //   blockNumber: 13005280,
-      // },
+      forking: {
+        url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyKey}`,
+        blockNumber: 13005280,
+      },
+    },
+    kovan: {
+      accounts,
+      url: nodeUrl("kovan"),
+    },
+    goerli: {
+      accounts,
+      url: nodeUrl("goerli"),
     },
     rinkeby: {
       // Infura public nodes
