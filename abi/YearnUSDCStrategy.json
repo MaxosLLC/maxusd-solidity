@@ -1,16 +1,35 @@
 [
   {
-    "inputs": [],
-    "name": "DECIMALS",
-    "outputs": [
+    "anonymous": false,
+    "inputs": [
       {
+        "indexed": false,
         "internalType": "uint256",
-        "name": "",
+        "name": "amount",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "InvestYearnUSDCStrategy",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "beneficiary",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RedeemYearnUSDCStrategy",
+    "type": "event"
   },
   {
     "inputs": [],
@@ -39,20 +58,39 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "addressManager",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "c__0xc6f8df47",
+        "name": "c__0x9aab82d5",
         "type": "bytes32"
       }
     ],
-    "name": "c_0xc6f8df47",
+    "name": "c_0x9aab82d5",
     "outputs": [],
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_addressManager",
+        "type": "address"
+      }
+    ],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -62,7 +100,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "amount",
+        "name": "_amount",
         "type": "uint256"
       }
     ],
@@ -75,12 +113,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "beneficiary",
+        "name": "_beneficiary",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "amount",
+        "name": "_amount",
         "type": "uint256"
       }
     ],

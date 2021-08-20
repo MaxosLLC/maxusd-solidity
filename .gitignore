@@ -12,6 +12,7 @@ artifacts
 /.DS_Store
 .openzeppelin
 key.json
+bin
 
 #Coverage
 coverage

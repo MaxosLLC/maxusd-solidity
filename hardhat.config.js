@@ -29,19 +29,11 @@ task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, bre, runSuper) => {
 });
 
 const infuraKey = process.env.INFURA_KEY;
-const mnemonic = process.env.MNEMONIC;
 const alchemyKey = process.env.ALCHEMY_KEY;
 
 function nodeUrl(network) {
   return `https://${network}.infura.io/v3/${infuraKey}`;
 }
-
-const accounts = mnemonic
-  ? {
-      mnemonic,
-    }
-  : undefined;
-
 
 module.exports = {
   defaultNetwork: "hardhat",
@@ -65,16 +57,16 @@ module.exports = {
       },
     },
     kovan: {
-      accounts,
+      accounts: [process.env.PK || PK],
       url: nodeUrl("kovan"),
     },
     goerli: {
-      accounts,
+      accounts: [process.env.PK || PK],
       url: nodeUrl("goerli"),
     },
     rinkeby: {
       // Infura public nodes
-      url: 'https://rinkeby.infura.io/v3/34ee2e319e7945caa976d4d1e24db07f',
+      url: `https://rinkeby.infura.io/v3/${infuraKey}`,
       accounts: [process.env.PK || PK],
       chainId: 4,
       gasPrice: 40000000000,
@@ -82,7 +74,7 @@ module.exports = {
     },
     ropsten: {
       // Infura public nodes
-      url: 'https://ropsten.infura.io/v3/34ee2e319e7945caa976d4d1e24db07f',
+      url: `https://ropsten.infura.io/v3/${infuraKey}`,
       accounts: [process.env.PK || PK],
       chainId: 3,
       gasPrice: 40000000000,
@@ -90,7 +82,7 @@ module.exports = {
     },
     mainnet: {
       // Infura public nodes
-      url: 'https://mainnet.infura.io/v3/1692a3b8ad92406189c2c7d2b01660bc',
+      url: `https://mainnet.infura.io/v3/${infuraKey}`,
       accounts: [process.env.PK || PK],
       chainId: 1,
       gasPrice: 115000000000, // 44 GWEI gas price for deployment.

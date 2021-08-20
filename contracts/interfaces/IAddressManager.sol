@@ -15,4 +15,6 @@ interface IAddressManager {
   function investor() external view returns (address);
 
   function anchorContract() external view returns (address);
+  
+  function yearnUSDCStrategy() external view returns (address);
 }

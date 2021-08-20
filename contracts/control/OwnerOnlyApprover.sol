@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "../interfaces/IOwnerOnlyApprover.sol";
+import "../interfaces/ITransferApprover.sol";
 
 /**
  * @title Owner Only Approver
@@ -14,7 +14,7 @@ interface IOwnerOnlyApproverCaller {
   function owner() external view returns (address);
 }
 
-contract OwnerOnlyApprover is IOwnerOnlyApprover {
+contract OwnerOnlyApprover is ITransferApprover {
   /**
    * @notice Returns token transferability
    * @dev Mint and burn transactions are always allowed

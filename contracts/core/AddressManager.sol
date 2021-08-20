@@ -28,6 +28,9 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
 
   // Anchor
   address public override anchorContract;
+  
+  // Strategies
+  address public override yearnUSDCStrategy;
 
   /*** Contract Logic Starts Here */
 
@@ -91,5 +94,13 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
    */
   function setAnchor(address _anchor) external onlyOwner {
     anchorContract = _anchor;
+  }
+
+  /**
+   * @notice Set Yearn USDC Strategy address
+   * @param _yearnUSDCStrategy Yearn USDC Strategy address
+   */
+  function setYearnUSDCStrategy(address _yearnUSDCStrategy) external onlyOwner {
+    yearnUSDCStrategy = _yearnUSDCStrategy;
   }
 }

@@ -35,11 +35,11 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "c__0x7195f350",
+        "name": "c__0x613d28e2",
         "type": "bytes32"
       }
     ],
-    "name": "c_0x7195f350",
+    "name": "c_0x613d28e2",
     "outputs": [],
     "stateMutability": "pure",
     "type": "function"
@@ -211,6 +211,19 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "_yearnUSDCStrategy",
+        "type": "address"
+      }
+    ],
+    "name": "setYearnUSDCStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "newOwner",
         "type": "address"
       }
@@ -223,6 +236,19 @@
   {
     "inputs": [],
     "name": "treasuryContract",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "yearnUSDCStrategy",
     "outputs": [
       {
         "internalType": "address",
