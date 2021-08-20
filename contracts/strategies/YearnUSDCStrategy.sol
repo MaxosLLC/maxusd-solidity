@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
@@ -15,7 +15,7 @@ import "../interfaces/IYearnUSDCVault.sol";
  * @author Maxos
  */
 contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradeable {
-  using SafeERC20 for IERC20;
+  using SafeERC20 for IERC20Upgradeable;
 
   /*** Events ***/
   event InvestYearnUSDCStrategy(uint256 amount);
@@ -27,7 +27,7 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuar
   IYearnUSDCVault public constant USDC_VAULT = IYearnUSDCVault(0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9);
 
   // USDC token
-  IERC20 public constant  USDC_TOKEN = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+  IERC20Upgradeable public constant  USDC_TOKEN = IERC20Upgradeable(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
   /*** Storage Properties ***/
 
