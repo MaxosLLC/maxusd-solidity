@@ -10,7 +10,6 @@ artifacts
 .idea
 .env
 /.DS_Store
-.openzeppelin
 key.json
 bin
 

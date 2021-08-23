@@ -14,6 +14,11 @@ import "../interfaces/IStrategyBase.sol";
  * @author Maxos
  */
 contract Banker is IBanker, ReentrancyGuardUpgradeable {
+  /*** Constants ***/
+
+  // USDC token
+  IERC20Upgradeable public constant  USDC_TOKEN = IERC20Upgradeable(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+
   /*** Storage Properties ***/
 
   // Strategy settings
@@ -281,39 +286,36 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    * @notice Allocate assets to strategies
    */
   function allocate() external onlyManager onlyTurnOn nonReentrant {
-    int totalAmountToAllocate;
-
     uint256 totalAssetValue = getTotalAssetValue();
+    address treasury = IAddressManager(addressManager).treasuryContract();
+
+    // redeem to Treasury
+    int256 diffAmount;
     for (uint256 i; i < strategies.length; i++) {
-      totalAmountToAllocate += int(strategySettings[strategies[i]].assetValue - totalAssetValue * strategySettings[strategies[i]].desiredAssetAP);
-    }
-    
-    require(totalAmountToAllocate != 0);
-
-    int strategyAmountToAllocate;
-    if  (totalAmountToAllocate > 0) {
-      // invest
-      for (uint256 j = 0; j <  strategies.length; j++) {
-        strategyAmountToAllocate = int(totalAssetValue * strategySettings[strategies[j]].desiredAssetAP - strategySettings[strategies[j]].assetValue);
-        if (strategyAmountToAllocate > 0) {
-          totalAmountToAllocate -= strategyAmountToAllocate;
-          IStrategyBase(strategies[j]).invest(uint256(strategyAmountToAllocate));
+      // ignore Treasury
+      if (strategies[i] != treasury) {
+        diffAmount = int256(strategySettings[strategies[i]].assetValue - totalAssetValue * strategySettings[strategies[i]].desiredAssetAP);
+        if (diffAmount > 0) {
+          IStrategyBase(strategies[i]).redeem(treasury, uint256(diffAmount));
         }
-
-        if (strategyAmountToAllocate == 0) break;
       }
-    } else {
-      // // redeem
-      // for (uint256 j = 0; j <  strategies.length; j++) {
-      //   strategyAmountToAllocate = int(strategySettings[strategies[j]].assetValue - totalAssetValue * strategySettings[strategies[j]].desiredAssetAP);
-      //   if (strategyAmountToAllocate > 0) {
-      //     totalAmountToAllocate += strategyAmountToAllocate;
-      //     // TODO: determine beneficiary
-      //     IStrategyBase(strategies[j]).redeem(address(this), uint256(strategyAmountToAllocate));
-      //   }
+    }
 
-      //   if (strategyAmountToAllocate == 0) break;
-      // }
+    // calculate total amount to invest
+    int256 totalAmountToAllocate = int256(strategySettings[treasury].assetValue - totalAssetValue * strategySettings[treasury].desiredAssetAP);
+
+    // invest
+    uint256 strategyAmountToAllocate;
+    for (uint256 j = 0; j <  strategies.length; j++) {
+        if (strategies[j] != treasury && totalAmountToAllocate > 0) {
+          diffAmount = int256(totalAssetValue * strategySettings[strategies[j]].desiredAssetAP - strategySettings[strategies[j]].assetValue);
+          if (diffAmount > 0) {
+            strategyAmountToAllocate = uint256(totalAmountToAllocate > diffAmount ? diffAmount: totalAmountToAllocate);
+            totalAmountToAllocate -= int256(strategyAmountToAllocate);
+            require(USDC_TOKEN.transferFrom(treasury, strategies[j], strategyAmountToAllocate), "Invest failure");
+            IStrategyBase(strategies[j]).invest(uint256(diffAmount));
+          }
+        }
     }
   }
 
