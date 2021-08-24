@@ -2,5 +2,19 @@
     "rinkeby": {
         "OwnerOnlyApprover": "0xD31544b4C730d7BeB17F9245fd8d55a617E83876",
         "MaxBanker": "0xdccC1ccfeAed15d195a65C83586ADbA4874cb43E"
+    },
+    "local": {
+        "AddressManager": "0x82e01223d51Eb87e16A03E24687EDF0F294da6f1",
+        "Treasury": "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0",
+        "YearnUSDCStrategy": "0xFD471836031dc5108809D173A067e8486B9047A3",
+        "Banker": "0xB0D4afd8879eD9F52b28595d31B441D079B2Ca07",
+        "OwnerOnlyApprover": "0x922D6956C99E12DFeB3224DEA977D0939758A1Fe",
+        "MaxBanker": "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d"
+    },
+    "ropsten": {
+        "AddressManager": "0xAFbd72E83eFC1c2dd6d2a48Fb35C87282a008642",
+        "Treasury": "0x2e252210F8c00B2FB47f618A3541C3BdC210420b",
+        "YearnUSDCStrategy": "0x35317316B96a29A7829637b0583FA3d2899BadEb",
+        "Banker": "0xD85a254d918f19BE1fD61D94582a8ed92Ded905e"
     }
 }

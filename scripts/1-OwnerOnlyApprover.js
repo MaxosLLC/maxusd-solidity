@@ -14,12 +14,11 @@ main = async () => {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  let contracts = getSavedContractAddresses()[hre.network.name];
-
-  // OwnerOnlyApprover
+  // Deploy OwnerOnlyApprover contract
   const OwnerOnlyApprover = await hre.ethers.getContractFactory("OwnerOnlyApprover");
   const ownerOnlyApprover = await upgrades.deployProxy(OwnerOnlyApprover);
   await ownerOnlyApprover.deployed();
+
   console.log("OwnerOnlyApprover contract deployed to:", ownerOnlyApprover.address);
   saveContractAddress(hre.network.name, 'OwnerOnlyApprover', ownerOnlyApprover.address);
 };

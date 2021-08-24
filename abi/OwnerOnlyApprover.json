@@ -2,19 +2,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "c__0x1916a1cc",
-        "type": "bytes32"
-      }
-    ],
-    "name": "c_0x1916a1cc",
-    "outputs": [],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "_from",
         "type": "address"

@@ -14,16 +14,15 @@ main = async () => {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  let contracts = getSavedContractAddresses()[hre.network.name];
-
-  // MaxBanker
+  // Deploy MaxBanker contract
   const MaxBanker = await hre.ethers.getContractFactory("MaxBanker");
   const maxBanker = await upgrades.deployProxy(MaxBanker, ["Maxos Mutual governance", "MAXOS"]);
   await maxBanker.deployed();
+
   console.log("MaxBanker contract deployed to:", maxBanker.address);
   saveContractAddress(hre.network.name, 'MaxBanker', maxBanker.address);
 
-  // Set OwnerOnlyApprover address
+  //----- Set OwnerOnlyApprover address -----//
 };
 
 // We recommend this pattern to be able to use async/await everywhere
