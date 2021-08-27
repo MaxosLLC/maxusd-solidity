@@ -92,7 +92,6 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
    */
   function strategyAssetValue() external view override returns (uint256) {
     uint256 exchangeRate = ANCHOR_EXCHANGERATEFEEDER.exchangeRateOf(address(USDC_TOKEN), false);
-
-    return 0;
+    return totalShares * exchangeRate;
   }
 }

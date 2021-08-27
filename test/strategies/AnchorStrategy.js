@@ -36,4 +36,26 @@ describe("AnchorStrategy", function () {
     // Swap ETH for USDC   
     await swapETHForExactTokens(parseEther("10"), parseUnits("10000", 6), USDC_ADDRESS, anchorStrategy.address, deployer);
   });
+
+  describe("Initialize", function () {
+    it("Should initialize total share", async function () {
+      expect(await anchorStrategy.totalShares()).to.eq(0);
+    });
+  });
+
+  describe("Invest", function () {
+    it("Should not invest by non banker", async function () {
+      await expect(anchorStrategy.invest(1)).to.revertedWith("No banker");
+    });
+
+    it("Should not invest with zero amount", async function () {
+      await expect(anchorStrategy.connect(banker).invest(0)).to.revertedWith("Invalid amount");
+    });
+
+    it("Should not invest with the amount greater than than strategy balance", async function () {
+      await expect(anchorStrategy.connect(banker).invest(parseUnits("20000", 6))).to.revertedWith("Invalid amount");
+    });
+
+
+  });
 });
