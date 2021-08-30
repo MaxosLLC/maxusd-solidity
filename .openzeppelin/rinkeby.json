@@ -89,6 +89,111 @@
       "address": "0xa5bC0f7019261b274A6b8E660169C3F7bAAd2d76",
       "txHash": "0xee39c33274c97d2e85710ab7a2bc8436dfba8fcca0a15b34f32a9e89e3c852b9",
       "kind": "transparent"
+    },
+    {
+      "address": "0x416c60c2B37BA8c2A03b4d803B3C6E333Acb728c",
+      "txHash": "0xb3d38efc059f026346315f0768a14265b7e8de2d6d27f613063b67ce7f6ce873",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6488756bD0A0769cb2a9F13Bf8D2E64d06B9F425",
+      "txHash": "0x12da6b71914472afc8ef65732b50eda38042f38b87c016ce6490fea61b365199",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x656Fc0E8fAe5e74346d34bcDe2269fB49730c06C",
+      "txHash": "0x8ca114bc4f11a0656c8b1bd4b6e0d08bab04467607e5c701462ae6acae693fa6",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x8670F9fe366A7A2deE05E370D1e3A0Ce56d65A7D",
+      "txHash": "0x34d3f8865a032389e9cda3a82c071114f6dd72fe72f4240f851b4f6df5d6ed84",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2504aF4a4CfF91e4fe5b32084303d4441625BbeA",
+      "txHash": "0x3fa0d4089f631ccc806db6c4dd1d3b25e59ead3a7cbd1685bda902a85a092780",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7556Eb2A0AE424c6E1BD1df1bBFB3789F2123991",
+      "txHash": "0x633518e769a3e89718838da45c603d2996fee90c67a29f3f0f2d102f3c3786a6",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3b8d5E10836012371c6060C1e09b7c9454352f2f",
+      "txHash": "0x01689142a777bac293e2a84b42f4e93b915386b2a99d8d0f2c6b82d7b59ffdcf",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2e7b084732F5C03293Bf556421923C824E0fa10f",
+      "txHash": "0x0709d71d4993b702eded0535de29d2eb7c5737a7863b6670b4982707403a2d09",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3Fb51309B65120df71f93981fe5726993929bEc0",
+      "txHash": "0xa15b20ac5d573cb4f1798989c2efd155ad98c16f350c1ae4b69b63c1b1876de9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xD5423C4fc776D2A02CE83BD1B549BdCEBb928721",
+      "txHash": "0x70d0953ed1e67afdd4b82e346c9e3bc60d58e7ca661b0fa18e4e9981b6612526",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xF8d9fC8D9691f5DDF6025f47825b238468160Ee8",
+      "txHash": "0x16ca6f338060ed6469d507cba2d693be7ba079636bcbe75da24783ce2806ab15",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x20b547Eeb09bfF29F2d7b5700b0424A42A07deBA",
+      "txHash": "0x63ca3eb5055b82a4abc7a26764ac538e268ccf5c86672ec1d68d3cbdeedf67c9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xCa358ab097F807d1111836bF39C5c1640C225eb6",
+      "txHash": "0x45d29867f727cfc97cdf1dfe89b8d09fd599880c3518e6ab3bfa62c2009a1a8c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xA38bdcaC1071fb6dbcee6E86d5C37F5480FFC1F5",
+      "txHash": "0x215945cec24ab7dad25ed375819097c0c3f5bde93bb4a40f5860a5b8ce264f6f",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7C7a4B65bc02ef0F71cc423D68B5D9Dc83e76DfE",
+      "txHash": "0x79bb106b90e6b760ef62baf71528edd247286f55197abd608846ee3834f09712",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7E3CFcfb4752Db5e2A418091D889Bec22Ec7a40f",
+      "txHash": "0xcf84ece8844f1e6fc330f6424bdc57f767bfc3bc436899dadfa9ce1463d7896f",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xcfC594D9389272780f07f66dD4D7333cB53BeC61",
+      "txHash": "0xf313dbd1e491a1704c5751ede61aff69e8bd0ddaf3381e79a2994c199ca4f052",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x0EC515f35946cFC205e322a9EB8dF7F40F0AA861",
+      "txHash": "0x0a1de3938b81f02d8dc9dc694b70110deff77ed7c313e9746b2d6ce0da60c0ec",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x4521683F54Fe27C466C49adFf1eB72edD21C00bA",
+      "txHash": "0xfbec85be71b1b6714206f6e4cd8e706320a3d25aa90e1703486119fce59a27f0",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x79EbCB4aD66ae7039847140154fA2F4BbDBB9e1c",
+      "txHash": "0x3eb42c914749743df9067d5ec1574431f824dfa3c8fe96b993031f512e2d8a75",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3B3d53Dd1dc3b100D403EFB07Eb92AA3D29e0756",
+      "txHash": "0x6a7e1a23d5c4df8b0afda35aa707563548cba20578c86d0af9925aa35ac09ea0",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -335,6 +440,476 @@
           },
           "t_bool": {
             "label": "bool"
+          }
+        }
+      }
+    },
+    "6cb88eaccdd0c47be64ad4d7cdeb918494ce05a7e1d49b36cc2c64a6bbe601e3": {
+      "address": "0x64b6d698876c8af9072f361B257B73Bbe2dbAFD9",
+      "txHash": "0x465f7ca93a63582373cd9c8883450ac7ff94510b785a1e69664c8e48af3e976e",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:30"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:21"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:77"
+          },
+          {
+            "contract": "AddressManager",
+            "label": "manager",
+            "type": "t_address",
+            "src": "contracts/core/AddressManager.sol:16"
+          },
+          {
+            "contract": "AddressManager",
+            "label": "bankerContract",
+            "type": "t_address",
+            "src": "contracts/core/AddressManager.sol:19"
+          },
+          {
+            "contract": "AddressManager",
+            "label": "treasuryContract",
+            "type": "t_address",
+            "src": "contracts/core/AddressManager.sol:20"
+          },
+          {
+            "contract": "AddressManager",
+            "label": "maxUSD",
+            "type": "t_address",
+            "src": "contracts/core/AddressManager.sol:23"
+          },
+          {
+            "contract": "AddressManager",
+            "label": "maxBanker",
+            "type": "t_address",
+            "src": "contracts/core/AddressManager.sol:24"
+          },
+          {
+            "contract": "AddressManager",
+            "label": "investor",
+            "type": "t_address",
+            "src": "contracts/core/AddressManager.sol:27"
+          },
+          {
+            "contract": "AddressManager",
+            "label": "yearnUSDCStrategy",
+            "type": "t_address",
+            "src": "contracts/core/AddressManager.sol:30"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "8fc7e316f0629283f9e0892c15971adab23af12ea9b16df45d18b4c5d4830f06": {
+      "address": "0x4Fb197d436F0446A658AB314F643cB0026464548",
+      "txHash": "0x73b5cf27f5d9251c8eaa7308fb36deff395da995c127fae474846f16f663c564",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Treasury",
+            "label": "allowedTokens",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/strategies/Treasury.sol:26"
+          },
+          {
+            "contract": "Treasury",
+            "label": "isAllowedToken",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/strategies/Treasury.sol:29"
+          },
+          {
+            "contract": "Treasury",
+            "label": "userScaledBalance",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/strategies/Treasury.sol:34"
+          },
+          {
+            "contract": "Treasury",
+            "label": "addressManager",
+            "type": "t_address",
+            "src": "contracts/strategies/Treasury.sol:37"
+          }
+        ],
+        "types": {
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "993f8c281bb4ac182dec12911ad89f3c8d5e374412664fa5f5cc89983a6e0b79": {
+      "address": "0xe172c5CE79673fA2327dbbC581090e06C1624176",
+      "txHash": "0x3aac937cf987174257fae20985888cb51efaab38969adc6c2420c8e27c4a098e",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "YearnUSDCStrategy",
+            "label": "totalShares",
+            "type": "t_uint256",
+            "src": "contracts/strategies/YearnUSDCStrategy.sol:35"
+          },
+          {
+            "contract": "YearnUSDCStrategy",
+            "label": "addressManager",
+            "type": "t_address",
+            "src": "contracts/strategies/YearnUSDCStrategy.sol:38"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "4db1d263fbba0572c04f86662ae9e382f1dd3f524f640cd75ed25a58ffb0261b": {
+      "address": "0xCA85469B7007c311B9A2daA342e158DACaA6C9a7",
+      "txHash": "0xd959a0c96c1efea30a273fed86bdf18fa20e2b850ea75a81dcbcb689300fd087",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Banker",
+            "label": "strategies",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "contracts/core/Banker.sol:52"
+          },
+          {
+            "contract": "Banker",
+            "label": "isValidStrategy",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/core/Banker.sol:55"
+          },
+          {
+            "contract": "Banker",
+            "label": "strategySettings",
+            "type": "t_mapping(t_address,t_struct(StrategySettings)3745_storage)",
+            "src": "contracts/core/Banker.sol:58"
+          },
+          {
+            "contract": "Banker",
+            "label": "maxUSDLiabilities",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:61"
+          },
+          {
+            "contract": "Banker",
+            "label": "redemptionDelayTime",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:64"
+          },
+          {
+            "contract": "Banker",
+            "label": "_redemptionRequestQueue",
+            "type": "t_mapping(t_uint256,t_struct(RedemptionRequest)4795_storage)",
+            "src": "contracts/core/Banker.sol:67"
+          },
+          {
+            "contract": "Banker",
+            "label": "first",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:68"
+          },
+          {
+            "contract": "Banker",
+            "label": "last",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:69"
+          },
+          {
+            "contract": "Banker",
+            "label": "isTurnOff",
+            "type": "t_bool",
+            "src": "contracts/core/Banker.sol:72"
+          },
+          {
+            "contract": "Banker",
+            "label": "addressManager",
+            "type": "t_address",
+            "src": "contracts/core/Banker.sol:75"
+          },
+          {
+            "contract": "Banker",
+            "label": "maxUSDInterestRate",
+            "type": "t_struct(InterestRate)3750_storage",
+            "src": "contracts/core/Banker.sol:81"
+          },
+          {
+            "contract": "Banker",
+            "label": "maxUSDNextInterestRate",
+            "type": "t_struct(NextInterestRate)3755_storage",
+            "src": "contracts/core/Banker.sol:84"
+          },
+          {
+            "contract": "Banker",
+            "label": "mintDepositPercentage",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:88"
+          },
+          {
+            "contract": "Banker",
+            "label": "maxBankerPrice",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:91"
+          },
+          {
+            "contract": "Banker",
+            "label": "cellingMaxUSDPrice",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:94"
+          },
+          {
+            "contract": "Banker",
+            "label": "maxBankerPerStake",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:97"
+          },
+          {
+            "contract": "Banker",
+            "label": "stakingAvailable",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:100"
+          },
+          {
+            "contract": "Banker",
+            "label": "stakeStrikePrice",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:103"
+          },
+          {
+            "contract": "Banker",
+            "label": "stakeLockupTime",
+            "type": "t_uint256",
+            "src": "contracts/core/Banker.sol:106"
+          }
+        ],
+        "types": {
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_address,t_struct(StrategySettings)3745_storage)": {
+            "label": "mapping(address => struct Banker.StrategySettings)"
+          },
+          "t_struct(StrategySettings)3745_storage": {
+            "label": "struct Banker.StrategySettings",
+            "members": [
+              {
+                "label": "insuranceAP",
+                "type": "t_uint256"
+              },
+              {
+                "label": "desiredAssetAP",
+                "type": "t_uint256"
+              },
+              {
+                "label": "assetValue",
+                "type": "t_uint256"
+              },
+              {
+                "label": "reportedAt",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_uint256,t_struct(RedemptionRequest)4795_storage)": {
+            "label": "mapping(uint256 => struct IBanker.RedemptionRequest)"
+          },
+          "t_struct(RedemptionRequest)4795_storage": {
+            "label": "struct IBanker.RedemptionRequest",
+            "members": [
+              {
+                "label": "requestor",
+                "type": "t_address"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "requestedAt",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_struct(InterestRate)3750_storage": {
+            "label": "struct Banker.InterestRate",
+            "members": [
+              {
+                "label": "interestRate",
+                "type": "t_uint256"
+              },
+              {
+                "label": "lastInterestPaymentTime",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_struct(NextInterestRate)3755_storage": {
+            "label": "struct Banker.NextInterestRate",
+            "members": [
+              {
+                "label": "interestRate",
+                "type": "t_uint256"
+              },
+              {
+                "label": "nextRateStartTime",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           }
         }
       }

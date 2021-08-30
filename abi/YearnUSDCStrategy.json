@@ -33,19 +33,6 @@
   },
   {
     "inputs": [],
-    "name": "USDC_TOKEN",
-    "outputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "USDC_VAULT",
     "outputs": [
       {
