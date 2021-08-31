@@ -1,5 +1,18 @@
 [
   {
+    "inputs": [],
+    "name": "USDC_TOKEN",
+    "outputs": [
+      {
+        "internalType": "contract IERC20Upgradeable",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -59,6 +72,13 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "allocate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address[]",
@@ -79,19 +99,6 @@
     "name": "batchAllocation",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "c__0xf487ecd1",
-        "type": "bytes32"
-      }
-    ],
-    "name": "c_0xf487ecd1",
-    "outputs": [],
-    "stateMutability": "pure",
     "type": "function"
   },
   {

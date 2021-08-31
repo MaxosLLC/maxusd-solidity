@@ -20,7 +20,7 @@
   },
   {
     "inputs": [],
-    "name": "bankerContract",
+    "name": "USDC",
     "outputs": [
       {
         "internalType": "address",
@@ -32,16 +32,16 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "bankerContract",
+    "outputs": [
       {
-        "internalType": "bytes32",
-        "name": "c__0x613d28e2",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
-    "name": "c_0x613d28e2",
-    "outputs": [],
-    "stateMutability": "pure",
+    "stateMutability": "view",
     "type": "function"
   },
   {

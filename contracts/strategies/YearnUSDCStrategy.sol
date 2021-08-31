@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IAddressManager.sol";
@@ -15,8 +14,6 @@ import "../interfaces/IYearnUSDCVault.sol";
  * @author Maxos
  */
 contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradeable {
-  using SafeERC20 for IERC20Upgradeable;
-
   /*** Events ***/
   event InvestYearnUSDCStrategy(uint256 amount);
   event RedeemYearnUSDCStrategy(address indexed beneficiary, uint256 amount);
@@ -25,9 +22,6 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuar
 
   // Yearn USDC vault
   IYearnUSDCVault public constant USDC_VAULT = IYearnUSDCVault(0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9);
-
-  // USDC token
-  IERC20Upgradeable public constant  USDC_TOKEN = IERC20Upgradeable(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
 
   /*** Storage Properties ***/
 
@@ -55,10 +49,12 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuar
    * @param _amount USD amount to invest
    */
   function invest(uint256 _amount) external override nonReentrant onlyBanker {
-    require(_amount <= USDC_VAULT.availableDepositLimit(), "Limit overflow");
-    require(_amount > 0 && _amount <= USDC_TOKEN.balanceOf(address(this)), "Invalid amount");
+    ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
 
-    USDC_TOKEN.approve(address(USDC_VAULT), _amount);
+    require(_amount <= USDC_VAULT.availableDepositLimit(), "Limit overflow");
+    require(_amount > 0 && _amount <= usdc.balanceOf(address(this)), "Invalid amount");
+
+    usdc.approve(address(USDC_VAULT), _amount);
     uint256 shares = USDC_VAULT.deposit(_amount);
     totalShares += shares;
 
@@ -71,12 +67,14 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuar
    * @param _amount USD amount to redeem
    */
   function redeem(address _beneficiary, uint256 _amount) external override nonReentrant onlyBanker {
+    ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
+
     uint256 _shares = _amount * 10**USDC_VAULT.decimals() / USDC_VAULT.pricePerShare();
     require(_shares > 0 && _shares <= totalShares, "Invalid amount");
     
     uint256 amount = USDC_VAULT.withdraw(_shares);
     totalShares -= _shares;
-    USDC_TOKEN.safeTransfer(_beneficiary, amount);
+    require(usdc.transfer(_beneficiary, amount));
 
     emit RedeemYearnUSDCStrategy(_beneficiary, amount);
   }

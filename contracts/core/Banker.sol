@@ -186,6 +186,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     uint256 _desiredAssetAP
   ) external onlyManager {
     require(!isValidStrategy[_strategy], "Already exists");
+    require(_insuranceAP <= 10000, "InsuranceAP overflow");
+    require(_desiredAssetAP <= 10000, "DesiredAssetAP overflow");
     isValidStrategy[_strategy] = true;
 
     strategies.push(_strategy);
@@ -307,15 +309,21 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     // invest
     uint256 strategyAmountToAllocate;
     for (uint256 j = 0; j <  strategies.length; j++) {
-        if (strategies[j] != treasury && totalAmountToAllocate > 0) {
-          diffAmount = int256(totalAssetValue * strategySettings[strategies[j]].desiredAssetAP - strategySettings[strategies[j]].assetValue);
-          if (diffAmount > 0) {
-            strategyAmountToAllocate = uint256(totalAmountToAllocate > diffAmount ? diffAmount: totalAmountToAllocate);
-            totalAmountToAllocate -= int256(strategyAmountToAllocate);
-            require(USDC_TOKEN.transferFrom(treasury, strategies[j], strategyAmountToAllocate), "Invest failure");
-            IStrategyBase(strategies[j]).invest(uint256(diffAmount));
-          }
+      // investment done
+      if (totalAmountToAllocate <= 0) break;
+
+      // transfer fund from treasury to strategies
+      if (strategies[j] != treasury) {
+        diffAmount = int256(totalAssetValue * strategySettings[strategies[j]].desiredAssetAP - strategySettings[strategies[j]].assetValue);
+        if (diffAmount > 0) {
+          strategyAmountToAllocate = uint256(totalAmountToAllocate > diffAmount ? diffAmount: totalAmountToAllocate);
+          totalAmountToAllocate -= int256(strategyAmountToAllocate);
+          require(totalAmountToAllocate >= 0, "Allocation fauiler");
+          require(USDC_TOKEN.transferFrom(treasury, strategies[j], strategyAmountToAllocate), "Investment failure");
+          // TODO: Remove the invest() comments later
+          // IStrategyBase(strategies[j]).invest(uint256(diffAmount));
         }
+      }
     }
   }
 

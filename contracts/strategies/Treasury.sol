@@ -58,6 +58,7 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
    * @param _amount token amount
    */
   function buyDeposit(address _token, uint256 _amount) external override onlyManager {
+    // TODO: Remove onlyManager modifier later
     require(isAllowedToken[_token], "Invalid token");
 
     // transfer token
@@ -77,6 +78,7 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
    * @param _amount token amount
    */
   function redeemDeposit(uint256 _amount) external override nonReentrant onlyManager {
+    // TODO: Remove onlyManager modifier later
     require(_amount <= IBanker(IAddressManager(addressManager).bankerContract()).getUserMaxUSDLiability(msg.sender), "Invalid amount");
 
     IBanker(IAddressManager(addressManager).bankerContract()).addRedemptionRequest(msg.sender, _amount, block.timestamp);
