@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IAddressManager.sol";
@@ -17,8 +16,6 @@ import "../interfaces/IAnchorExchangeRateFeeder.sol";
  * @author Maxos
  */
 contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradeable {
-  using SafeERC20 for IERC20Upgradeable;
-
   /*** Events ***/
   event InvestAnchorStrategy(uint256 amount);
   event RedeemAnchorStrategy(address indexed beneficiary, uint256 amount);
@@ -33,12 +30,6 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
 
   // Anchor ExchangeRateFeeder
   IAnchorExchangeRateFeeder public constant ANCHOR_EXCHANGERATEFEEDER = IAnchorExchangeRateFeeder(0xd7c4f5903De8A256a1f535AC71CeCe5750d5197a);
-
-  // USDC token interacted with the strategy
-  IERC20Upgradeable public constant USDC_TOKEN = IERC20Upgradeable(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-
-  // Decimal number for total shares
-  uint256 public constant DECIMALS = 2;
 
   // Total shares for the investment of Anchor vault
   uint256 public totalShares;
@@ -60,12 +51,14 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
 
   /**
    * @notice Invest token into Anchor USDC vault
-   * @dev Token is transferred from the banker
-   * @param _amount {uint256} USD amount to invest
+   * @param _amount USD amount to invest
    */
   function invest(uint256 _amount) external override nonReentrant onlyBanker {
-    require(_amount > 0 && _amount <= USDC_TOKEN.balanceOf(address(this)), "Invalid amount");
+    ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
 
+    require(_amount > 0 && _amount <= usdc.balanceOf(address(this)), "Invalid amount");
+
+    usdc.approve(address(ANCHOR_CONVERSIONPOOL), _amount);
     ANCHOR_CONVERSIONPOOL.deposit(_amount);
     totalShares += _amount;
 
@@ -91,7 +84,9 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
    * @return (uint256) asset value of the strategy in USD
    */
   function strategyAssetValue() external view override returns (uint256) {
-    uint256 exchangeRate = ANCHOR_EXCHANGERATEFEEDER.exchangeRateOf(address(USDC_TOKEN), false);
+    ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
+
+    uint256 exchangeRate = ANCHOR_EXCHANGERATEFEEDER.exchangeRateOf(address(usdc), false);
     return totalShares * exchangeRate;
   }
 }
