@@ -4,7 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
-const { getSavedContractAddresses, saveContractAddress } = require('./utils')
+const { getSavedContractAddresses, saveContractAddress, saveContractAbis } = require('./utils')
 
 main = async () => {
   // Hardhat always runs the compile task when running scripts with its command
@@ -21,6 +21,8 @@ main = async () => {
 
   console.log("MaxBanker contract deployed to:", maxBanker.address);
   saveContractAddress(hre.network.name, 'MaxBanker', maxBanker.address);
+  let maxBankerArtifact = await hre.artifacts.readArtifact("MaxBanker");
+  saveContractAbis(hre.network.name, 'MaxBanker', maxBankerArtifact.abi, hre.network.name);
 
   //----- Set OwnerOnlyApprover address -----//
 };

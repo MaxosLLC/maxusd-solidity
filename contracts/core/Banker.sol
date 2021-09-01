@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IBanker.sol";
@@ -14,11 +15,6 @@ import "../interfaces/IStrategyBase.sol";
  * @author Maxos
  */
 contract Banker is IBanker, ReentrancyGuardUpgradeable {
-  /*** Constants ***/
-
-  // USDC token
-  IERC20Upgradeable public constant  USDC_TOKEN = IERC20Upgradeable(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-
   /*** Storage Properties ***/
 
   // Strategy settings
@@ -290,13 +286,14 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   function allocate() external onlyManager onlyTurnOn nonReentrant {
     uint256 totalAssetValue = getTotalAssetValue();
     address treasury = IAddressManager(addressManager).treasuryContract();
+    ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
 
     // redeem to Treasury
     int256 diffAmount;
     for (uint256 i; i < strategies.length; i++) {
       // ignore Treasury
       if (strategies[i] != treasury) {
-        diffAmount = int256(strategySettings[strategies[i]].assetValue - totalAssetValue * strategySettings[strategies[i]].desiredAssetAP);
+        diffAmount = int256(strategySettings[strategies[i]].assetValue / 100 * (10 ** usdc.decimals())) - int256(totalAssetValue /100 * strategySettings[strategies[i]].desiredAssetAP /10000 * (10 ** usdc.decimals()));
         if (diffAmount > 0) {
           IStrategyBase(strategies[i]).redeem(treasury, uint256(diffAmount));
         }
@@ -304,7 +301,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     }
 
     // calculate total amount to invest
-    int256 totalAmountToAllocate = int256(strategySettings[treasury].assetValue - totalAssetValue * strategySettings[treasury].desiredAssetAP);
+    int256 totalAmountToAllocate = int256(strategySettings[treasury].assetValue / 100 * (10 ** usdc.decimals())) - int256(totalAssetValue / 100 * strategySettings[treasury].desiredAssetAP / 10000 * (10 ** usdc.decimals()));
 
     // invest
     uint256 strategyAmountToAllocate;
@@ -314,12 +311,13 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
       // transfer fund from treasury to strategies
       if (strategies[j] != treasury) {
-        diffAmount = int256(totalAssetValue * strategySettings[strategies[j]].desiredAssetAP - strategySettings[strategies[j]].assetValue);
+        diffAmount = int256(totalAssetValue /100 * strategySettings[strategies[j]].desiredAssetAP / 10000 * (10 ** usdc.decimals())) - int256(strategySettings[strategies[j]].assetValue / 100 * (10 ** usdc.decimals()));
         if (diffAmount > 0) {
           strategyAmountToAllocate = uint256(totalAmountToAllocate > diffAmount ? diffAmount: totalAmountToAllocate);
           totalAmountToAllocate -= int256(strategyAmountToAllocate);
-          require(totalAmountToAllocate >= 0, "Allocation fauiler");
-          require(USDC_TOKEN.transferFrom(treasury, strategies[j], strategyAmountToAllocate), "Investment failure");
+          require(totalAmountToAllocate >= 0, "Allocation failure");
+          require(usdc.transferFrom(treasury, address(this), strategyAmountToAllocate), "Investment failure");
+          require(usdc.transfer(strategies[j], strategyAmountToAllocate), "Investment failure");
           // TODO: Remove the invest() comments later
           // IStrategyBase(strategies[j]).invest(uint256(diffAmount));
         }
