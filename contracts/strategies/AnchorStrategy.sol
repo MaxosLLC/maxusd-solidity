@@ -72,6 +72,11 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
    * @param _amount {uint256} USD amount to redeem
    */
   function redeem(address _beneficiary, uint256 _amount) external override nonReentrant onlyBanker {
+    ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
+
+    uint256 exchangeRate = ANCHOR_EXCHANGERATEFEEDER.exchangeRateOf(address(usdc), false);
+    uint256 _shares = _amount / exchangeRate;
+    require(_shares > 0 && _shares <= totalShares, "Invalid amount");
 
     ANCHOR_CONVERSIONPOOL.redeem(_amount);
     totalShares += _amount;
@@ -80,13 +85,13 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
   }
 
   /**
-   * @notice Returns asset value of the strategy from ANCHOR_EXCHANGERATEFEEDER contract
+   * @notice Returns asset value of the strategy
    * @return (uint256) asset value of the strategy in USD
    */
   function strategyAssetValue() external view override returns (uint256) {
     ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
 
     uint256 exchangeRate = ANCHOR_EXCHANGERATEFEEDER.exchangeRateOf(address(usdc), false);
-    return totalShares * exchangeRate;
+    return (totalShares * exchangeRate) / 10**18;
   }
 }

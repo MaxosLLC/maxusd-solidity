@@ -92,6 +92,18 @@ describe("AnchorStrategy", function () {
 
       expect(TEST_USDC_AMOUNT.sub(after.sub(before)).lte(10)).to.eq(true);
     });
+
+    it("Should not redeem with the amount greater than total shares", async function () {
+      const shares = await anchorStrategy.totalShares();
+      var exchangeRate = await exchangeRateFeeder.exchangeRateOf(USDC_ADDRESS, false);
+      const exceedAmount = shares
+        .mul(exchangeRate)
+        .div(10 ** 18)
+        .add(parseEther("10", 6));
+      await expect(yearnUSDCStrategy.connect(banker).redeem(yearnUSDCStrategy.address, exceedAmount)).to.revertedWith(
+        "Invalid amount",
+      );
+    });
   });
 
   describe("Anchor Contracts", function () {
