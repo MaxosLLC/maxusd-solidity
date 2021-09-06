@@ -4,7 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
-const { getSavedContractAddresses, saveContractAddress } = require('./utils')
+const { getSavedContractAddresses, saveContractAddress, saveContractAbis } = require('./utils')
 
 main = async () => {
   // Hardhat always runs the compile task when running scripts with its command
@@ -21,6 +21,8 @@ main = async () => {
 
   console.log("OwnerOnlyApprover contract deployed to:", ownerOnlyApprover.address);
   saveContractAddress(hre.network.name, 'OwnerOnlyApprover', ownerOnlyApprover.address);
+  let ownerOnlyApproverArtifact = await hre.artifacts.readArtifact("OwnerOnlyApprover");
+  saveContractAbis(hre.network.name, 'OwnerOnlyApprover', ownerOnlyApproverArtifact.abi, hre.network.name);
 };
 
 // We recommend this pattern to be able to use async/await everywhere
