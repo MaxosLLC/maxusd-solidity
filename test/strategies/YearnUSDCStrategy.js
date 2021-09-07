@@ -33,8 +33,14 @@ describe("YearnUSDCStrategy", function () {
     yvUSDCVault = await ethers.getContractAt("IYearnUSDCVault", yvUSDC_ADDRESS, deployer);
     usdcToken = await ethers.getContractAt("IERC20", USDC_ADDRESS, deployer);
 
-    // Swap ETH for USC   
-    await swapETHForExactTokens(parseEther("10"), parseUnits("10000", 6), USDC_ADDRESS, yearnUSDCStrategy.address, deployer);
+    // Swap ETH for USC
+    await swapETHForExactTokens(
+      parseEther("10"),
+      parseUnits("10000", 6),
+      USDC_ADDRESS,
+      yearnUSDCStrategy.address,
+      deployer,
+    );
   });
 
   describe("Initialize", function () {
@@ -97,7 +103,9 @@ describe("YearnUSDCStrategy", function () {
     });
 
     it("Should not redeem with zero amount", async function () {
-      await expect(yearnUSDCStrategy.connect(banker).redeem(yearnUSDCStrategy.address, 0)).to.revertedWith("Invalid amount");
+      await expect(yearnUSDCStrategy.connect(banker).redeem(yearnUSDCStrategy.address, 0)).to.revertedWith(
+        "Invalid amount",
+      );
     });
 
     it("Should not redeem with the amount greater than total shares", async function () {

@@ -95,7 +95,11 @@ contract MaxBanker is PausableUpgradeable, OwnableUpgradeable, ERC20VotesCompUpg
    * @param to beneficiary address
    * @param amount token amount
    */
-  function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override whenNotPaused {
+  function _beforeTokenTransfer(
+    address from,
+    address to,
+    uint256 amount
+  ) internal view override whenNotPaused {
     if (ownerOnlyApprover != address(0)) {
       require(ITransferApprover(ownerOnlyApprover).checkTransfer(from, to));
     }
