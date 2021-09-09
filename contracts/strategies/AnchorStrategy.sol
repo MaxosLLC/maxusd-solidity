@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../interfaces/IAddressManager.sol";
 import "../interfaces/IStrategyBase.sol";
@@ -16,6 +17,8 @@ import "../interfaces/IAnchorExchangeRateFeeder.sol";
  * @author Maxos
  */
 contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradeable {
+  using SafeMath for uint256;
+
   /*** Events ***/
   event InvestAnchorStrategy(uint256 amount);
   event RedeemAnchorStrategy(address indexed beneficiary, uint256 amount);
@@ -77,14 +80,15 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
     ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
 
     uint256 exchangeRate = ANCHOR_EXCHANGERATEFEEDER.exchangeRateOf(address(usdc), false);
-    uint256 _shares = _amount / exchangeRate;
+    uint256 _shares = _amount.mul(exchangeRate).div(1e18);
+    
     require(_shares > 0 && _shares <= totalShares, "Invalid amount");
 
-    ANCHOR_CONVERSIONPOOL.redeem(_amount);
-    totalShares -= _amount;
-    require(usdc.transfer(_beneficiary, amount));
+    ANCHOR_CONVERSIONPOOL.redeem(_shares);
+    totalShares -= _shares;
+    require(usdc.transfer(_beneficiary, _shares));
 
-    emit RedeemAnchorStrategy(_beneficiary, _amount);
+    emit RedeemAnchorStrategy(_beneficiary, _shares);
   }
 
   /**

@@ -6,9 +6,9 @@ const { parseUnits, parseEther } = require("@ethersproject/units");
 const { swapETHForExactTokens } = require("../common/UniswapV2Router");
 chai.use(solidity);
 
-const USDC_ADDRESS = "0xE015FD30cCe08Bc10344D934bdb2292B1eC4BBBD";
-const anchorUSDC_ADDRESS = "0x92E68C8C24a0267fa962470618d2ffd21f9b6a95";
-const exchangeRateFeeder_ADDRESS = "0x79E0d9bD65196Ead00EE75aB78733B8489E8C1fA";
+const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+const anchorUSDC_ADDRESS = "0x53fD7e8fEc0ac80cf93aA872026EadF50cB925f3";
+const exchangeRateFeeder_ADDRESS = "0xd7c4f5903De8A256a1f535AC71CeCe5750d5197a";
 
 const TEST_USDC_AMOUNT = parseUnits("1000", 6);
 
@@ -36,7 +36,7 @@ describe("AnchorStrategy", function () {
     exchangeRateFeeder = await ethers.getContractAt("IAnchorExchangeRateFeeder", exchangeRateFeeder_ADDRESS, deployer);
 
     // Swap ETH for USDC   
-    //await swapETHForExactTokens(parseEther("10"), parseUnits("10000", 6), USDC_ADDRESS, anchorStrategy.address, deployer);
+    await swapETHForExactTokens(parseEther("10"), parseUnits("10000", 6), USDC_ADDRESS, anchorStrategy.address, deployer);
   });
 
   describe("Initialize", function () {
@@ -56,6 +56,16 @@ describe("AnchorStrategy", function () {
 
     it("Should not invest with the amount greater than than strategy balance", async function () {
       await expect(anchorStrategy.connect(banker).invest(parseUnits("20000", 6))).to.revertedWith("Invalid amount");
+    });
+
+    it("Should invest by banker", async function () {
+      const before = await anchorStrategy.totalShares();
+
+      await anchorStrategy.connect(banker).invest(TEST_USDC_AMOUNT);
+
+      const after = await anchorStrategy.totalShares();
+
+      expect(after.gt(before));
     });
   });
 
