@@ -84,7 +84,7 @@ describe("AnchorStrategy", function () {
 
       const exceedAmount = shares
         .mul(exchangeRate)
-        .div(10 ** 18)
+        .div(10 ** 6)
         .add(parseEther("10", 6));
       await expect(anchorStrategy.connect(banker).redeem(anchorStrategy.address, exceedAmount)).to.revertedWith(
         "Invalid amount",
@@ -93,29 +93,13 @@ describe("AnchorStrategy", function () {
 
     it("Should redeem by banker", async function () {
       const shares = await anchorStrategy.totalShares();
-      var exchangeRate = await exchangeRateFeeder.exchangeRateOf(USDC_ADDRESS, false);
-      const usdcAmount = shares.mul(exchangeRate).div(10 ** 6);
-
+      const usdcAmount = shares.div(10 ** 6);
       const before = await usdcToken.balanceOf(anchorStrategy.address);
+
       await anchorStrategy.connect(banker).redeem(anchorStrategy.address, usdcAmount);
       const after = await usdcToken.balanceOf(anchorStrategy.address);
 
       expect(TEST_USDC_AMOUNT.sub(after.sub(before)).lte(10)).to.eq(true);
-    });
-  });
-
-  describe("Anchor Contracts", function () {
-    it("Deposit", async function () {
-      await anchorUSDCVault.connect(banker).deposit(parseUnits("20000", 6));
-    });
-
-    it("Redeem", async function () {
-      await anchorUSDCVault.connect(banker).redeem(parseUnits("20000", 6))
-    });
-
-    it("Exchange Rate", async function () {
-      var exchangeRate = await exchangeRateFeeder.exchangeRateOf(USDC_ADDRESS, false);
-      console.log("Exchange rate", exchangeRate);
     });
   });
 });
