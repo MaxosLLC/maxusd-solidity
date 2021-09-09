@@ -81,7 +81,8 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
     require(_shares > 0 && _shares <= totalShares, "Invalid amount");
 
     ANCHOR_CONVERSIONPOOL.redeem(_amount);
-    totalShares += _amount;
+    totalShares -= _amount;
+    require(usdc.transfer(_beneficiary, amount));
 
     emit RedeemAnchorStrategy(_beneficiary, _amount);
   }
