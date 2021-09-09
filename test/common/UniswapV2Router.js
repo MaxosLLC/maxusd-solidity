@@ -19,5 +19,5 @@ async function swapETHForExactTokens(amountIn, amountExactOut, token, recipient,
 }
 
 module.exports = {
-  swapETHForExactTokens
+  swapETHForExactTokens,
 };

@@ -20,12 +20,12 @@ describe("MaxBanker", () => {
 
   describe("Token", async () => {
     it("Should have correct name/symbol", async () => {
-        expect(await maxBanker.name()).to.be.equal("Maxos Mutual governance");
-        expect(await maxBanker.symbol()).to.be.equal("MAXOS");
-    })
+      expect(await maxBanker.name()).to.be.equal("Maxos Mutual governance");
+      expect(await maxBanker.symbol()).to.be.equal("MAXOS");
+    });
   });
 
-  describe("Ownership", async => {
+  describe("Ownership", (async) => {
     it("Should not transfer ownership by non owner", async () => {
       expect(await maxBanker.owner()).to.equal(deployer.address);
       await expect(maxBanker.connect(alice).transferOwnership(owner.address)).to.be.reverted;
@@ -128,12 +128,12 @@ describe("MaxBanker", () => {
     it("Should set ownerOnlyApprover address by non owner", async () => {
       expect(await maxBanker.ownerOnlyApprover()).to.be.equal(constants.AddressZero);
       await maxBanker.connect(deployer).transferOwnership(owner.address);
-    
+
       await maxBanker.connect(owner).setOwnerOnlyApprover(ownerOnlyApprover.address);
       expect(await maxBanker.ownerOnlyApprover()).to.be.equal(ownerOnlyApprover.address);
     });
 
-    it("Should not tranasfer between normal users", async() => {
+    it("Should not tranasfer between normal users", async () => {
       await expect(maxBanker.connect(owner).setOwnerOnlyApprover(ownerOnlyApprover.address)).to.reverted;
       await maxBanker.transferOwnership(owner.address);
       await maxBanker.connect(owner).setOwnerOnlyApprover(ownerOnlyApprover.address);
@@ -151,7 +151,7 @@ describe("MaxBanker", () => {
       await expect(maxBanker.connect(mintContract).transfer(alice.address, MINT_AMOUNT)).to.be.reverted;
     });
 
-    it("Should tranasfer by owner", async() => {
+    it("Should tranasfer by owner", async () => {
       await maxBanker.transferOwnership(owner.address);
       await maxBanker.connect(owner).setOwnerOnlyApprover(ownerOnlyApprover.address);
 
@@ -163,7 +163,9 @@ describe("MaxBanker", () => {
       await maxBanker.connect(owner).pause();
       await expect(maxBanker.connect(alice).transfer(owner.address, MINT_AMOUNT)).to.revertedWith("Pausable: paused");
       await maxBanker.connect(alice).approve(owner.address, 1);
-      await expect(maxBanker.connect(owner).transferFrom(alice.address, bob.address, 1)).to.revertedWith("Pausable: paused");
+      await expect(maxBanker.connect(owner).transferFrom(alice.address, bob.address, 1)).to.revertedWith(
+        "Pausable: paused",
+      );
 
       // unpause
       await maxBanker.connect(owner).unpause();

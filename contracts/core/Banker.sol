@@ -34,7 +34,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   // Next interest rate
   struct NextInterestRate {
     uint256 interestRate; // next interest rate
-    uint256 nextRateStartTime;  // next rate start time
+    uint256 nextRateStartTime; // next rate start time
   }
 
   // MaxUSD redemption queue to the strategy, defined in IBanker like this
@@ -70,12 +70,11 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   // Address manager
   address public addressManager;
 
-
   /*** Banker Settings Here */
 
   // MaxUSD annual interest rate
   InterestRate public maxUSDInterestRate;
-  
+
   // MaxUSD next annual interest rate
   NextInterestRate public maxUSDNextInterestRate;
 
@@ -101,7 +100,6 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   // Stake lockup time
   uint256 public stakeLockupTime;
 
-
   /*** Contract Logic Starts Here */
 
   modifier onlyManager() {
@@ -110,7 +108,10 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   modifier onlyTreasuryContract() {
-    require(isValidStrategy[msg.sender] && msg.sender == IAddressManager(addressManager).treasuryContract(), "No treasury");
+    require(
+      isValidStrategy[msg.sender] && msg.sender == IAddressManager(addressManager).treasuryContract(),
+      "No treasury"
+    );
     _;
   }
 
@@ -293,7 +294,11 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     for (uint256 i; i < strategies.length; i++) {
       // ignore Treasury
       if (strategies[i] != treasury) {
-        diffAmount = int256(strategySettings[strategies[i]].assetValue / 100 * (10 ** usdc.decimals())) - int256(totalAssetValue /100 * strategySettings[strategies[i]].desiredAssetAP /10000 * (10 ** usdc.decimals()));
+        diffAmount =
+          int256((strategySettings[strategies[i]].assetValue / 100) * (10**usdc.decimals())) -
+          int256(
+            (((totalAssetValue / 100) * strategySettings[strategies[i]].desiredAssetAP) / 10000) * (10**usdc.decimals())
+          );
         if (diffAmount > 0) {
           IStrategyBase(strategies[i]).redeem(treasury, uint256(diffAmount));
         }
@@ -301,19 +306,24 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     }
 
     // calculate total amount to invest
-    int256 totalAmountToAllocate = int256(strategySettings[treasury].assetValue / 100 * (10 ** usdc.decimals())) - int256(totalAssetValue / 100 * strategySettings[treasury].desiredAssetAP / 10000 * (10 ** usdc.decimals()));
+    int256 totalAmountToAllocate = int256((strategySettings[treasury].assetValue / 100) * (10**usdc.decimals())) -
+      int256((((totalAssetValue / 100) * strategySettings[treasury].desiredAssetAP) / 10000) * (10**usdc.decimals()));
 
     // invest
     uint256 strategyAmountToAllocate;
-    for (uint256 j = 0; j <  strategies.length; j++) {
+    for (uint256 j = 0; j < strategies.length; j++) {
       // investment done
       if (totalAmountToAllocate <= 0) break;
 
       // transfer fund from treasury to strategies
       if (strategies[j] != treasury) {
-        diffAmount = int256(totalAssetValue /100 * strategySettings[strategies[j]].desiredAssetAP / 10000 * (10 ** usdc.decimals())) - int256(strategySettings[strategies[j]].assetValue / 100 * (10 ** usdc.decimals()));
+        diffAmount =
+          int256(
+            (((totalAssetValue / 100) * strategySettings[strategies[j]].desiredAssetAP) / 10000) * (10**usdc.decimals())
+          ) -
+          int256((strategySettings[strategies[j]].assetValue / 100) * (10**usdc.decimals()));
         if (diffAmount > 0) {
-          strategyAmountToAllocate = uint256(totalAmountToAllocate > diffAmount ? diffAmount: totalAmountToAllocate);
+          strategyAmountToAllocate = uint256(totalAmountToAllocate > diffAmount ? diffAmount : totalAmountToAllocate);
           totalAmountToAllocate -= int256(strategyAmountToAllocate);
           require(totalAmountToAllocate >= 0, "Allocation failure");
           require(usdc.transferFrom(treasury, address(this), strategyAmountToAllocate), "Investment failure");
@@ -369,9 +379,17 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    * @param _amount USD amount to redeem
    * @param _requestedAt requested time
    */
-  function addRedemptionRequest(address _requestor, uint256 _amount, uint256 _requestedAt) external override onlyTreasuryContract onlyTurnOn {
+  function addRedemptionRequest(
+    address _requestor,
+    uint256 _amount,
+    uint256 _requestedAt
+  ) external override onlyTreasuryContract onlyTurnOn {
     last++;
-    _redemptionRequestQueue[last] = RedemptionRequest({ requestor: _requestor, amount: _amount, requestedAt: _requestedAt });
+    _redemptionRequestQueue[last] = RedemptionRequest({
+      requestor: _requestor,
+      amount: _amount,
+      requestedAt: _requestedAt
+    });
   }
 
   /**
@@ -424,7 +442,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    */
   function calculateMaxUSDLiabilities(uint256 _interestRate) public view returns (uint256) {
     uint256 passedDays = (block.timestamp - maxUSDInterestRate.lastInterestPaymentTime) / 1 days;
-    return maxUSDLiabilities * (1 + _interestRate/10000) ** (passedDays / 365);
+    return maxUSDLiabilities * (1 + _interestRate / 10000)**(passedDays / 365);
   }
 
   /**
@@ -439,7 +457,15 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    * @notice Remove redemption request from the queue
    * @return (address, uint256, uint256) requestor, amount, requestedAt
    */
-  function _removeRedemptionRequest() internal onlyTurnOn returns (address, uint256, uint256) {
+  function _removeRedemptionRequest()
+    internal
+    onlyTurnOn
+    returns (
+      address,
+      uint256,
+      uint256
+    )
+  {
     require(last >= first, "Empty redemption queue");
 
     address requestor = _redemptionRequestQueue[first].requestor;

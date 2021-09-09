@@ -27,10 +27,7 @@ contract Strategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUpgradea
     _;
   }
 
-  function initialize(
-    address _addressManager,
-    address _vault
-  ) public initializer {
+  function initialize(address _addressManager, address _vault) public initializer {
     __ReentrancyGuard_init();
 
     addressManager = _addressManager;

@@ -11,12 +11,12 @@ import "../interfaces/IStrategyAssetValue.sol";
  * @author Maxos
  */
 contract WalletInvestor is IStrategyAssetValue, Initializable {
-    /*** Storage Properties ***/
+  /*** Storage Properties ***/
 
   // Asset value of the strategy
   uint256 public override strategyAssetValue;
 
-    // Address manager
+  // Address manager
   address public addressManager;
 
   /*** Contract Logic Starts Here */

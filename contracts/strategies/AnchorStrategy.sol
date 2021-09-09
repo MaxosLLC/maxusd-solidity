@@ -23,13 +23,15 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
   /*** Constants ***/
 
   // USDC Anchor Conversion Pool
-  IAnchorConversionPool public constant ANCHOR_CONVERSIONPOOL = IAnchorConversionPool(0x53fD7e8fEc0ac80cf93aA872026EadF50cB925f3);
+  IAnchorConversionPool public constant ANCHOR_CONVERSIONPOOL =
+    IAnchorConversionPool(0x53fD7e8fEc0ac80cf93aA872026EadF50cB925f3);
 
   // Anchor Router
   IAnchorRouter public constant ANCHOR_ROUTER = IAnchorRouter(0xcEF9E167d3f8806771e9bac1d4a0d568c39a9388);
 
   // Anchor ExchangeRateFeeder
-  IAnchorExchangeRateFeeder public constant ANCHOR_EXCHANGERATEFEEDER = IAnchorExchangeRateFeeder(0xd7c4f5903De8A256a1f535AC71CeCe5750d5197a);
+  IAnchorExchangeRateFeeder public constant ANCHOR_EXCHANGERATEFEEDER =
+    IAnchorExchangeRateFeeder(0xd7c4f5903De8A256a1f535AC71CeCe5750d5197a);
 
   // Total shares for the investment of Anchor vault
   uint256 public totalShares;
@@ -40,7 +42,7 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
   modifier onlyBanker() {
     require(msg.sender == IAddressManager(addressManager).bankerContract(), "No banker");
     _;
-  } 
+  }
 
   function initialize(address _addressManager) public initializer {
     __ReentrancyGuard_init();

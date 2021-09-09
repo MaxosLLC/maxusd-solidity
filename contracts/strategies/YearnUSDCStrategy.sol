@@ -36,7 +36,7 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuar
   modifier onlyBanker() {
     require(msg.sender == IAddressManager(addressManager).bankerContract(), "No banker");
     _;
-  } 
+  }
 
   function initialize(address _addressManager) public initializer {
     __ReentrancyGuard_init();
@@ -69,9 +69,9 @@ contract YearnUSDCStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuar
   function redeem(address _beneficiary, uint256 _amount) external override nonReentrant onlyBanker {
     ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
 
-    uint256 _shares = _amount * 10**USDC_VAULT.decimals() / USDC_VAULT.pricePerShare();
+    uint256 _shares = (_amount * 10**USDC_VAULT.decimals()) / USDC_VAULT.pricePerShare();
     require(_shares > 0 && _shares <= totalShares, "Invalid amount");
-    
+
     uint256 amount = USDC_VAULT.withdraw(_shares);
     totalShares -= _shares;
     require(usdc.transfer(_beneficiary, amount));
