@@ -14,6 +14,8 @@ interface IAddressManager {
 
   function USDC() external view returns (address);
 
+  function aUSDC() external view returns (address);
+
   function investor() external view returns (address);
 
   function anchorContract() external view returns (address);

@@ -116,13 +116,10 @@ describe("AnchorStrategy", function () {
 
     it("Should redeem by banker", async function () {
       const shares = await anchorStrategy.totalShares();
-      const usdcAmount = shares.div(10 ** 6);
-      const before = await usdcToken.balanceOf(anchorStrategy.address);
 
-      await anchorStrategy.connect(banker).redeem(anchorStrategy.address, usdcAmount);
-      const after = await usdcToken.balanceOf(anchorStrategy.address);
+      await anchorStrategy.connect(banker).redeem(anchorStrategy.address, shares);
+      
 
-      expect(TEST_USDC_AMOUNT.sub(after.sub(before)).lte(10)).to.eq(true);
     });
   });
 });

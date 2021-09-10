@@ -23,6 +23,7 @@ contract AddressManager is IAddressManager, OwnableUpgradeable {
   address public override maxUSD;
   address public override maxBanker;
   address public constant override USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+  address public constant override aUSDC = 0x94eAd8f528A3aF425de14cfdDA727B218915687C;
 
   // Investor
   address public override investor;
