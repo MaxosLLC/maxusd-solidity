@@ -7,13 +7,15 @@ const { swapETHForExactTokens } = require("../common/UniswapV2Router");
 chai.use(solidity);
 
 const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+const AUSDC_ADDRESS = "0x94eAd8f528A3aF425de14cfdDA727B218915687C";
+const UST_ADDRESS = '0xa47c8bf37f92abed4a126bda807a7b7498661acd';
 const anchorUSDC_ADDRESS = "0x53fD7e8fEc0ac80cf93aA872026EadF50cB925f3";
 const exchangeRateFeeder_ADDRESS = "0xd7c4f5903De8A256a1f535AC71CeCe5750d5197a";
 
 const TEST_USDC_AMOUNT = parseUnits("1000", 6);
 
 describe("AnchorStrategy", function () {
-  let usdcToken, anchorStrategy, anchorUSDCVault, addressManager, exchangeRateFeeder;
+  let usdcToken, aUsdcToken, ustToken, anchorStrategy, anchorUSDCVault, addressManager, exchangeRateFeeder;
 
   before(async function () {
     [deployer, manager, banker] = await ethers.getSigners();
@@ -33,6 +35,8 @@ describe("AnchorStrategy", function () {
     // Get IAnchorConversionPool and USDC
     anchorUSDCVault = await ethers.getContractAt("IAnchorConversionPool", anchorUSDC_ADDRESS, deployer);
     usdcToken = await ethers.getContractAt("IERC20", USDC_ADDRESS, deployer);
+    aUsdcToken = await ethers.getContractAt("IERC20", AUSDC_ADDRESS, deployer);
+    ustToken = await ethers.getContractAt("IERC20", UST_ADDRESS, deployer);
     exchangeRateFeeder = await ethers.getContractAt("IAnchorExchangeRateFeeder", exchangeRateFeeder_ADDRESS, deployer);
 
     // Swap ETH for USDC   
@@ -59,11 +63,30 @@ describe("AnchorStrategy", function () {
     });
 
     it("Should invest by banker", async function () {
+      console.log(TEST_USDC_AMOUNT + ' TEST_USDC_AMOUNT');
       const before = await anchorStrategy.totalShares();
+
+      const usdcBefore = await usdcToken.balanceOf(anchorStrategy.address);
+      var ustBefore = await ustToken.balanceOf(anchorUSDCVault.address);
+      var aUsdcBefore = await aUsdcToken.balanceOf(anchorStrategy.address);
 
       await anchorStrategy.connect(banker).invest(TEST_USDC_AMOUNT);
 
+      var aUsdcAfter = await aUsdcToken.balanceOf(anchorStrategy.address);
+      console.log(aUsdcBefore + ' aUsdc balance before');
+      console.log(aUsdcAfter + ' aUsdc balance after');
+
+      const usdcAfter = await usdcToken.balanceOf(anchorStrategy.address);
+      console.log(usdcBefore + ' usdc balance before');
+      console.log(usdcAfter + ' usdc balance after');
+
+      const ustAfter = await ustToken.balanceOf(anchorUSDCVault.address);
+      console.log(ustBefore + ' ust balance before');
+      console.log(ustAfter + ' ust balance after');
+
       const after = await anchorStrategy.totalShares();
+      console.log(before + ' Anchor Strategy before');
+      console.log(after + ' Anchor Strategy after');
 
       expect(after.gt(before));
     });
