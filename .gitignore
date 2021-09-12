@@ -10,9 +10,8 @@ artifacts
 .idea
 .env
 /.DS_Store
-key.json
 bin
-.openzeppelin/unknown-31337
+.openzeppelin/unknown-31337.json
 
 #Coverage
 coverage
