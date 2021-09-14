@@ -19,6 +19,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
   // Strategy settings
   struct StrategySettings {
+    string name;  // strategy name
     uint256 insuranceAP; // insurance allocation percentage, scaled by 10e2
     uint256 desiredAssetAP; // desired asset allocation percentage, scaled by 10e2
     uint256 assetValue; // asset value in strategy
@@ -171,13 +172,22 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
+   * @notice Returns strategy array
+   */
+  function getAllStrategies() external view returns (address[] memory) {
+    return strategies;
+  }
+
+  /**
    * @notice Add a new strategy
    * @dev Set isValidStrategy to true
+   * @param _name Strategy name
    * @param _strategy Strategy address
    * @param _insuranceAP Insurance allocation percentage, scaled by 10e2
    * @param _desiredAssetAP Desired asset allocation percentage, scaled by 10e2
    */
   function addStrategy(
+    string memory _name,
     address _strategy,
     uint256 _insuranceAP,
     uint256 _desiredAssetAP
@@ -188,6 +198,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     isValidStrategy[_strategy] = true;
 
     strategies.push(_strategy);
+    strategySettings[_strategy].name = _name;
     strategySettings[_strategy].insuranceAP = _insuranceAP;
     strategySettings[_strategy].desiredAssetAP = _desiredAssetAP;
   }
