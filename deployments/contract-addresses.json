@@ -2,19 +2,19 @@
     "rinkeby": {
         "OwnerOnlyApprover": "0xD31544b4C730d7BeB17F9245fd8d55a617E83876",
         "MaxBanker": "0xdccC1ccfeAed15d195a65C83586ADbA4874cb43E",
-        "AddressManager": "0x7E3CFcfb4752Db5e2A418091D889Bec22Ec7a40f",
-        "Treasury": "0xcfC594D9389272780f07f66dD4D7333cB53BeC61",
-        "YearnUSDCStrategy": "0x0EC515f35946cFC205e322a9EB8dF7F40F0AA861",
-        "Banker": "0x4521683F54Fe27C466C49adFf1eB72edD21C00bA",
+        "AddressManager": "0x68faa81bD850CF3af7F8fDa52C30d4F59c0b2B4a",
+        "Treasury": "0x6a1F3c5f8Be2C7D3646EA1F6d6Af83E122d688B4",
+        "YearnUSDCStrategy": "0x70bba65bE8C38D1A08c21830D7DbcB0B96317448",
+        "Banker": "0xAb1b8b1D51547131675e44c3606315196c62f0F3",
         "USDC": "0x3B3d53Dd1dc3b100D403EFB07Eb92AA3D29e0756"
     },
     "local": {
-        "AddressManager": "0x3aAde2dCD2Df6a8cAc689EE797591b2913658659",
-        "Treasury": "0xab16A69A5a8c12C732e0DEFF4BE56A70bb64c926",
-        "YearnUSDCStrategy": "0x1f10F3Ba7ACB61b2F50B9d6DdCf91a6f787C0E82",
-        "Banker": "0x38a024C0b412B9d1db8BC398140D00F5Af3093D4",
+        "AddressManager": "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d",
+        "Treasury": "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6",
+        "YearnUSDCStrategy": "0x4C4a2f8c81640e47606d3fd77B353E87Ba015584",
+        "Banker": "0x2E2Ed0Cfd3AD2f1d34481277b3204d807Ca2F8c2",
         "OwnerOnlyApprover": "0x922D6956C99E12DFeB3224DEA977D0939758A1Fe",
-        "MaxBanker": "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d"
+        "MaxBanker": "0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f"
     },
     "ropsten": {
         "AddressManager": "0x9c999854B12Cb70De363267Ca7f006A977999992",
@@ -25,8 +25,8 @@
     "hardhat": {
         "AddressManager": "0x82e01223d51Eb87e16A03E24687EDF0F294da6f1",
         "Treasury": "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0",
-        "YearnUSDCStrategy": "0x162A433068F51e18b7d13932F27e66a3f99E6890",
-        "Banker": "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d",
+        "YearnUSDCStrategy": "0xFD471836031dc5108809D173A067e8486B9047A3",
+        "Banker": "0xB0D4afd8879eD9F52b28595d31B441D079B2Ca07",
         "MaxBanker": "0xFD471836031dc5108809D173A067e8486B9047A3"
     }
 }
