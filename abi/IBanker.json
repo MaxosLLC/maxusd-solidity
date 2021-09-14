@@ -8,7 +8,12 @@
       },
       {
         "internalType": "uint256",
-        "name": "_amount",
+        "name": "_redeemAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_availableAmount",
         "type": "uint256"
       },
       {

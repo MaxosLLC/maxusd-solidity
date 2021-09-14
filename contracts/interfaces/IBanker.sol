@@ -5,7 +5,8 @@ interface IBanker {
   // MaxUSD redemption queue to the strategy
   struct RedemptionRequest {
     address requestor; // redemption requestor
-    uint256 amount; // MaxUSD amount to redeem
+    uint256 redeemAmount; // USD amount to redeem
+    uint256 availableAmount; // USD amount available
     uint256 requestedAt; // redemption request time
   }
 
@@ -15,7 +16,8 @@ interface IBanker {
 
   function addRedemptionRequest(
     address _beneficiary,
-    uint256 _amount,
+    uint256 _redeemAmount,
+    uint256 _availableAmount,
     uint256 _reqestedAt
   ) external;
 

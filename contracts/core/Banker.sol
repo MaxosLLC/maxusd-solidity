@@ -41,7 +41,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   // MaxUSD redemption queue to the strategy, defined in IBanker like this
   // struct RedemptionRequest {
   //   address beneficiary; // redemption requestor
-  //   uint256 amount; // MaxUSD amount to redeem
+  //   uint256 redeemAmount; // USD amount to redeem
+  //   uint256 availableAmount; // USD amount available
   //   uint256 requestedAt; // redemption request time
   // }
 
@@ -231,6 +232,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     external
     onlyManager
     onlyTurnOn
+    nonReentrant
   {
     require(_strategies.length == _insuranceAPs.length, "Data error");
 
@@ -293,7 +295,8 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Allocate assets to strategies
+   * @notice Invest/redeem funds in/from strategies
+   * @dev Invest/redeem funds in/from the strategy based on the desiredAssetAP
    */
   function allocate() external onlyManager onlyTurnOn nonReentrant {
     uint256 totalAssetValue = getTotalAssetValue();
@@ -324,9 +327,9 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     uint256 strategyAmountToAllocate;
     for (uint256 j = 0; j < strategies.length; j++) {
       // investment done
-      if (totalAmountToAllocate <= 0) break;
+      if (totalAmountToAllocate == 0) break;
 
-      // transfer fund from treasury to strategies
+      // transfer funds from treasury to strategies
       if (strategies[j] != treasury) {
         diffAmount =
           int256(
@@ -387,36 +390,39 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   /**
    * @notice Add redemption request to the queue
    * @param _requestor redemption requestor
-   * @param _amount USD amount to redeem
+   * @param _redeemAmount USD amount to redeem
+   * @param _availableAmount USD amount available
    * @param _requestedAt requested time
    */
   function addRedemptionRequest(
     address _requestor,
-    uint256 _amount,
+    uint256 _redeemAmount,
+    uint256 _availableAmount,
     uint256 _requestedAt
   ) external override onlyTreasuryContract onlyTurnOn {
     last++;
     _redemptionRequestQueue[last] = RedemptionRequest({
       requestor: _requestor,
-      amount: _amount,
+      redeemAmount: _redeemAmount,
+      availableAmount: _availableAmount,
       requestedAt: _requestedAt
     });
   }
 
-  /**
-   * @notice Get the MaxUSD holder's current MaxUSDLiablity
-   * @param _maxUSDHolder MaxUSD holder
-   */
-  function getUserMaxUSDLiability(address _maxUSDHolder) external view override returns (uint256) {
-    // address maxUSD = IAddressManager(addressManager).maxUSD();
-    // uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
-    // uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
+  // /**
+  //  * @notice Get the MaxUSD holder's current MaxUSDLiablity
+  //  * @param _maxUSDHolder MaxUSD holder
+  //  */
+  // function getUserMaxUSDLiability(address _maxUSDHolder) external view override returns (uint256) {
+  //   // address maxUSD = IAddressManager(addressManager).maxUSD();
+  //   // uint256 totalShare = IERC20Upgradeable(maxUSD).totalSupply();
+  //   // uint256 holderShare = IERC20Upgradeable(maxUSD).balanceOf(_maxUSDHolder);
 
-    // return maxUSDLiabilities / totalShare * holderShare;
+  //   // return maxUSDLiabilities / totalShare * holderShare;
 
-    // Assume that only one user(manager) deposits
-    return maxUSDLiabilities;
-  }
+  //   // Assume that only one user(manager) deposits
+  //   return maxUSDLiabilities;
+  // }
 
   /**
    * @notice Set next interest rate and start time
@@ -474,18 +480,20 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     returns (
       address,
       uint256,
+      uint256,
       uint256
     )
   {
     require(last >= first, "Empty redemption queue");
 
     address requestor = _redemptionRequestQueue[first].requestor;
-    uint256 amount = _redemptionRequestQueue[first].amount;
+    uint256 redeemAmount = _redemptionRequestQueue[first].redeemAmount;
+    uint256 availableAmount = _redemptionRequestQueue[first].availableAmount;
     uint256 requestedAt = _redemptionRequestQueue[first].requestedAt;
 
     delete _redemptionRequestQueue[first];
     first++;
 
-    return (requestor, amount, requestedAt);
+    return (requestor, redeemAmount, availableAmount, requestedAt);
   }
 }
