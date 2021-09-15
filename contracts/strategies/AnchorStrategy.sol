@@ -60,12 +60,15 @@ contract AnchorStrategy is IStrategyBase, IStrategyAssetValue, ReentrancyGuardUp
    */
   function invest(uint256 _amount) external override nonReentrant onlyBanker {
     ERC20 usdc = ERC20(IAddressManager(addressManager).USDC());
+    ERC20 aUsdc = ERC20(IAddressManager(addressManager).aUSDC());
 
     require(_amount > 0 && _amount <= usdc.balanceOf(address(this)), "Invalid amount");
 
     usdc.approve(address(ANCHOR_CONVERSIONPOOL), _amount);
     ANCHOR_CONVERSIONPOOL.deposit(_amount);
-    totalShares += _amount;
+    
+    uint256 shares = aUsdc.balanceOf(address(this));   
+    totalShares += shares;
 
     emit InvestAnchorStrategy(_amount);
   }
