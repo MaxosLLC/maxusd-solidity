@@ -49,7 +49,6 @@ module.exports = {
           enabled: true,
           runs: 200,
         },
-        evmVersion: "byzantium",
       },
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyKey}`,
