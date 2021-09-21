@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "../interfaces/IAddressManager.sol";
@@ -19,6 +20,9 @@ contract WalletInvestor is IStrategyAssetValue, Initializable {
   // Address manager
   address public addressManager;
 
+  // USDC token
+  ERC20 public usdc;
+
   /*** Contract Logic Starts Here */
 
   modifier onlyInvestor() {
@@ -28,6 +32,8 @@ contract WalletInvestor is IStrategyAssetValue, Initializable {
 
   function initialize(address _addressManager) public initializer {
     addressManager = _addressManager;
+
+    usdc = ERC20(IAddressManager(addressManager).USDC());
   }
 
   /**
@@ -36,5 +42,15 @@ contract WalletInvestor is IStrategyAssetValue, Initializable {
    */
   function updateStrategyAssetValue(uint256 _strategyAssetValue) external onlyInvestor {
     strategyAssetValue = _strategyAssetValue;
+  }
+
+  /**
+   * @notice Returns the available amount in the strategy
+   * @return (uint256) available amount in USDC
+   */
+  function strategyAvailableAmount() external view override returns (uint256) {
+    uint256 availableAmount = usdc.balanceOf(address(this));
+
+    return availableAmount;
   }
 }

@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IBanker.sol";
@@ -16,25 +16,18 @@ import "../interfaces/IStrategyAssetValue.sol";
  */
 contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable {
   /*** Events ***/
-
-  event AllowToken(address indexed token);
-  event DisallowToken(address indexed token);
+  event BuyDeposit(address indexed depositor, uint256 amount);
+  event RedeemDeposit(address indexed requestor, uint256 amount);
+  event Withdraw(address indexed beneficiary, uint256 amount);
+  event EmergencyWithdraw(address indexed beneficiary, address indexed token, uint256 amount);
 
   /*** Storage Properties ***/
 
-  // Token list allowed in treasury
-  address[] public allowedTokens;
-
-  // Returns if token is allowed
-  mapping(address => bool) public isAllowedToken;
-
-  // MaxUSD scaled balance
-  // userScaledBalance = userBalance / currentInterestIndex
-  // This essentially `marks` when a user has deposited in the treasury and can be used to calculate the users current redeemable balance
-  mapping(address => uint256) public userScaledBalance;
-
   // Address manager
   address public addressManager;
+
+  // USDC token
+  ERC20 public usdc;
 
   /*** Contract Logic Starts Here */
 
@@ -47,6 +40,10 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
     __ReentrancyGuard_init();
 
     addressManager = _addressManager;
+    usdc = ERC20(IAddressManager(addressManager).USDC());
+
+    // approve infinit amount of USDC to banker contract
+    usdc.approve(IAddressManager(addressManager).bankerContract(), type(uint256).max);
   }
 
   /**
@@ -54,102 +51,69 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
    * @dev Only allowed token can be deposited
    * @dev Mint MaxUSD and MaxBanker according to mintDepositPercentage
    * @dev Increase user's insurance if mintDepositPercentage is [0, 100)
-   * @param _token token address
+   * @dev Increase MaxUSDLiaibility if mintDepositPercentage is (0, 100]
    * @param _amount token amount
    */
-  function buyDeposit(address _token, uint256 _amount) external override onlyManager {
-    // TODO: Remove onlyManager modifier later
-    require(isAllowedToken[_token], "Invalid token");
-
+  function buyDeposit(uint256 _amount) external override onlyManager {
     // transfer token
-    require(IERC20Upgradeable(_token).transferFrom(msg.sender, address(this), _amount));
+    require(usdc.transferFrom(msg.sender, address(this), _amount));
 
-    // mint MaxUSD/MaxBanker tokens according to the mintDepositPercentage
-    // uint256 mintDepositPercentage = IBanker(IAddressManager(addressManager).bankerContract()).mintDepositPercentage();
+    emit BuyDeposit(msg.sender, _amount);
+  }
 
-    // Increase MaxUSDLiabilities
-    IBanker(IAddressManager(addressManager).bankerContract()).increaseMaxUSDLiabilities(_amount);
+  // /**
+  //  * @notice Redeem token
+  //  * @param _redeemAmount MaxUSD token amount to redeem
+  //  */
+  // function redeemDeposit(uint256 _redeemAmount) external override nonReentrant onlyManager {
+  //   IBanker(IAddressManager(addressManager).bankerContract()).addRedemptionRequest(
+  //     msg.sender,
+  //     _redeemAmount,  // update with USDC amount from MaxToken contract
+  //     0,
+  //     block.timestamp
+  //   );
+
+  //   // // transfer token
+  //   // require(ERC20(_token).transfer(msg.sender, _redeemAmount));
+
+  //     emit RedeemDeposit(msg.sender, _redeemAmount);
+  // }
+
+  /**
+   * @notice Withdraw USDC redeemed with the delay
+   * @param _beneficiary Beneficiary address
+   */
+  function withdrawAvailableAmount(address _beneficiary) external onlyManager nonReentrant {
+    require(usdc.transfer(_beneficiary, usdc.balanceOf(address(this))));
+
+    emit Withdraw(_beneficiary, usdc.balanceOf(address(this)));
   }
 
   /**
-   * @notice Withdraw token from the protocol
-   * @dev Only allowed token can be redeemed
-   * @param _redeemAmount MaxUSD token amount to redeem
+   * @notice Emergency withdraw for ERC20 tokens
+   * @param _beneficiary Beneficiary address
+   * @param _token Token address to withdraw
    */
-  function redeemDeposit(uint256 _redeemAmount) external override nonReentrant onlyManager {
-    // TODO: Remove onlyManager modifier later
+  function emergencyWithdraw(address _beneficiary, address _token) external onlyManager nonReentrant {
+    ERC20 token = ERC20(_token);
+    require(token.transfer(_beneficiary, token.balanceOf(address(this))));
 
-    // TODO: convert _redeemAmount in MaxUSD to the one in USD
-    // Check require(_redeemAmount <= maxUSD.balanceOf(msg.sender))
-    // Call Redeem(_maxUSDTokenAmount) function on MaxUSD token contract which will return USD value using shareIndex.
-    // Check if USD value should not be greater than total maxUSDLiabilities or user's maxUSDLiability in Banker contract
-    require(
-      _redeemAmount <= IBanker(IAddressManager(addressManager).bankerContract()).maxUSDLiabilities(),
-      "Invalid amount"
-    );
-
-    IBanker(IAddressManager(addressManager).bankerContract()).addRedemptionRequest(
-      msg.sender,
-      _redeemAmount,  // update with USD amount from MaxToken contract
-      0,
-      block.timestamp
-    );
-
-    // // transfer token
-    // require(IERC20Upgradeable(_token).transfer(msg.sender, _redeemAmount));
-  }
-
-  /**
-   * @notice Add a new token into the allowed token list
-   * @param _token Token address
-   */
-  function allowToken(address _token) external override onlyManager {
-    require(!isAllowedToken[_token], "Already allowed");
-    isAllowedToken[_token] = true;
-
-    allowedTokens.push(_token);
-
-    // approve infinit amount of tokens to banker contract
-    IERC20Upgradeable(_token).approve(IAddressManager(addressManager).bankerContract(), type(uint256).max);
-
-    emit AllowToken(_token);
-  }
-
-  /**
-   * @notice Remove token from the allowed token list
-   * @param _token Token index in the allowed token list
-   */
-  function disallowToken(address _token) external override onlyManager {
-    require(isAllowedToken[_token], "Already disallowed");
-    isAllowedToken[_token] = false;
-
-    for (uint256 i; i < allowedTokens.length; i++) {
-      if (allowedTokens[i] == _token) {
-        allowedTokens[i] = allowedTokens[allowedTokens.length - 1];
-        allowedTokens.pop();
-
-        // remove allowance to banker contract
-        IERC20Upgradeable(_token).approve(IAddressManager(addressManager).bankerContract(), 0);
-
-        break;
-      }
-    }
-
-    emit DisallowToken(_token);
+    emit EmergencyWithdraw(_beneficiary, _token, token.balanceOf(address(this)));
   }
 
   /**
    * @notice Returns asset value of the Treasury
-   * @return (uint256) asset value of the Treasury in USD, Ex: 100 USD is represented by 10,000
+   * @return (uint256) asset value of the Treasury in USDC
    */
   function strategyAssetValue() external view override returns (uint256) {
-    uint256 assetValue;
-    for (uint256 i; i < allowedTokens.length; i++) {
-      assetValue +=
-        (IERC20Upgradeable(allowedTokens[i]).balanceOf(address(this)) * 100) /
-        (10**IERC20Extended(allowedTokens[i]).decimals());
-    }
+    return strategyAvailableAmount();
+  }
 
-    return assetValue;
+  /**
+   * @notice Returns the available amount in the Treasury
+   * @return (uint256) available amount in USDC
+   */
+  function strategyAvailableAmount() public view override returns (uint256) {
+    return usdc.balanceOf(address(this));
   }
 }
