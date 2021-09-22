@@ -15,7 +15,7 @@ describe("YearnUSDCStrategy", function () {
   let usdcToken, yearnUSDCStrategy, yvUSDCVault, addressManager;
 
   before(async function () {
-    [deployer, manager, banker] = await ethers.getSigners();
+    [deployer, banker, manager] = await ethers.getSigners();
 
     // Deploy AddressManager
     const AddressManager = await ethers.getContractFactory("AddressManager");
@@ -33,14 +33,17 @@ describe("YearnUSDCStrategy", function () {
     yvUSDCVault = await ethers.getContractAt("IYearnUSDCVault", yvUSDC_ADDRESS, deployer);
     usdcToken = await ethers.getContractAt("IERC20", USDC_ADDRESS, deployer);
 
-    // Swap ETH for USC
+    // Swap ETH for USDC and transfer to banker
     await swapETHForExactTokens(
       parseEther("10"),
       parseUnits("10000", 6),
       USDC_ADDRESS,
-      yearnUSDCStrategy.address,
+      banker.address,
       deployer,
     );
+
+    // invest USDC to yearnUSDCStrategy
+    await usdcToken.connect(banker).transfer(yearnUSDCStrategy.address, TEST_USDC_AMOUNT);
   });
 
   describe("Initialize", function () {
@@ -91,7 +94,6 @@ describe("YearnUSDCStrategy", function () {
       expect(strategyAssetValue).to.eq(
         totalShares
           .mul(pricePerShare)
-          .mul(10 ** 2)
           .div(10 ** 6),
       );
     });

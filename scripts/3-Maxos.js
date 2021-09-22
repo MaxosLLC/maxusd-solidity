@@ -32,6 +32,19 @@ main = async () => {
   saveContractAddress(hre.network.name, 'AddressManager', addressManager.address);
   let addressManagerArtifact = await hre.artifacts.readArtifact("AddressManager");
   saveContractAbis(hre.network.name, 'AddressManager', addressManagerArtifact.abi, hre.network.name);
+  
+  // Deploy Banker contract and set it to AddressManager
+  let mintDepositPercentage = 0;  // 100% MaxBanker
+  let redemptionDelaytime = 60*60*24*7; // 7 days
+  const Banker = await hre.ethers.getContractFactory("Banker");
+  const banker = await upgrades.deployProxy(Banker, [addressManager.address, mintDepositPercentage, redemptionDelaytime]);
+  await banker.deployed();
+  await addressManager.setBankerContract(banker.address);
+  
+  console.log("Banker contract deployed to:", banker.address);
+  saveContractAddress(hre.network.name, 'Banker', banker.address);
+  let bankerArtifact = await hre.artifacts.readArtifact("Banker");
+  saveContractAbis(hre.network.name, 'Banker', bankerArtifact.abi, hre.network.name);
 
   // Deploy Treasury contract and set it to AddressManager
   const Treasury = await hre.ethers.getContractFactory("Treasury");
@@ -55,25 +68,9 @@ main = async () => {
   let yearnUSDCStrategyArtifact = await hre.artifacts.readArtifact("YearnUSDCStrategy");
   saveContractAbis(hre.network.name, 'YearnUSDCStrategy', yearnUSDCStrategyArtifact.abi, hre.network.name);
 
-  // Deploy Banker contract and set it to AddressManager
-  let mintDepositPercentage = 0;  // 100% MaxBanker
-  let redemptionDelaytime = 60*60*24*7; // 7 days
-  const Banker = await hre.ethers.getContractFactory("Banker");
-  const banker = await upgrades.deployProxy(Banker, [addressManager.address, mintDepositPercentage, redemptionDelaytime]);
-  await banker.deployed();
-  await addressManager.setBankerContract(banker.address);
-  
-  console.log("Banker contract deployed to:", banker.address);
-  saveContractAddress(hre.network.name, 'Banker', banker.address);
-  let bankerArtifact = await hre.artifacts.readArtifact("Banker");
-  saveContractAbis(hre.network.name, 'Banker', bankerArtifact.abi, hre.network.name);
-
-  // Allow USDC in Treasury
-  await treasury.allowToken(USDC_ADDRESS);
-
-  // Add strategy to Banker
-  await banker.addStrategy(treasury.address, 0, 500); // InsuranceAP = 0, DesiredAssetAP = 5%
-  await banker.addStrategy(yearnUSDCStrategy.address, 0, 9500); // InsuranceAP = 0, DesiredAssetAP = 5%
+  // // Add strategy to Banker by manager
+  // await banker.addStrategy("Treasury", "Ethereum", treasury.address, 0, 0, 0); // InsuranceAP = 0, DesiredAssetAP = 0%
+  // await banker.addStrategy("Yearn Strategy", "Ethereum", yearnUSDCStrategy.address, 0, 10000, 0); // InsuranceAP = 0, DesiredAssetAP = 100%
 };
 
 // We recommend this pattern to be able to use async/await everywhere
