@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IBanker {
-  // MaxUSD redemption queue to the strategy
+  // MaxUSD redemption request
   struct RedemptionRequest {
     address requestor; // redemption requestor
     uint256 redeemAmount; // USD amount to redeem
@@ -21,5 +21,5 @@ interface IBanker {
     uint256 _reqestedAt
   ) external;
 
-  function getUserMaxUSDLiability(address _maxUSDHolder) external view returns (uint256);
+  function maxUSDLiabilities() external view returns (uint256);
 }

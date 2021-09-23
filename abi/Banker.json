@@ -35,6 +35,11 @@
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "_network",
+        "type": "string"
+      },
+      {
         "internalType": "address",
         "name": "_strategy",
         "type": "address"
@@ -47,6 +52,11 @@
       {
         "internalType": "uint256",
         "name": "_desiredAssetAP",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_availableAmount",
         "type": "uint256"
       }
     ],
@@ -145,6 +155,19 @@
   },
   {
     "inputs": [],
+    "name": "getInsurance",
+    "outputs": [
+      {
+        "internalType": "int256",
+        "name": "",
+        "type": "int256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getTotalAssetValue",
     "outputs": [
       {
@@ -154,25 +177,6 @@
       }
     ],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_maxUSDHolder",
-        "type": "address"
-      }
-    ],
-    "name": "getUserMaxUSDLiability",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -404,19 +408,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_redemptionDelayTime",
-        "type": "uint256"
-      }
-    ],
-    "name": "setRedemptionDelayTime",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address[]",
         "name": "_strategies",
         "type": "address[]"
@@ -446,6 +437,42 @@
       }
     ],
     "name": "setStrategyInsuranceAPs",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "_name",
+        "type": "string"
+      }
+    ],
+    "name": "setStrategyName",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_strategy",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "_network",
+        "type": "string"
+      }
+    ],
+    "name": "setStrategyNetwork",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -524,6 +551,11 @@
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "network",
+        "type": "string"
+      },
+      {
         "internalType": "uint256",
         "name": "insuranceAP",
         "type": "uint256"
@@ -536,6 +568,11 @@
       {
         "internalType": "uint256",
         "name": "assetValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "availableAmount",
         "type": "uint256"
       },
       {

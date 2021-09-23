@@ -30,25 +30,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_maxUSDHolder",
-        "type": "address"
-      }
-    ],
-    "name": "getUserMaxUSDLiability",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "_amount",
         "type": "uint256"
@@ -57,6 +38,19 @@
     "name": "increaseMaxUSDLiabilities",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxUSDLiabilities",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

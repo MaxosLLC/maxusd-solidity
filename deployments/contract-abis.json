@@ -478,7 +478,7 @@
             },
             {
                 "inputs": [],
-                "name": "USDC_VAULT",
+                "name": "vault",
                 "outputs": [
                     {
                         "internalType": "contract IYearnUSDCVault",
@@ -3042,7 +3042,7 @@
             },
             {
                 "inputs": [],
-                "name": "USDC_VAULT",
+                "name": "vault",
                 "outputs": [
                     {
                         "internalType": "contract IYearnUSDCVault",
@@ -4488,7 +4488,7 @@
             },
             {
                 "inputs": [],
-                "name": "USDC_VAULT",
+                "name": "vault",
                 "outputs": [
                     {
                         "internalType": "contract IYearnUSDCVault",
@@ -5612,7 +5612,7 @@
             },
             {
                 "inputs": [],
-                "name": "USDC_VAULT",
+                "name": "vault",
                 "outputs": [
                     {
                         "internalType": "contract IYearnUSDCVault",
