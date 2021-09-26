@@ -103,6 +103,7 @@ contract Treasury is ITreasury, IStrategyAssetValue, ReentrancyGuardUpgradeable 
 
   /**
    * @notice Returns asset value of the Treasury
+   * @dev total asset value = available amount + invested amount, invested amount = 0
    * @return (uint256) asset value of the Treasury in USDC
    */
   function strategyAssetValue() external view override returns (uint256) {
