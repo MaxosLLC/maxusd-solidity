@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../interfaces/IBanker.sol";
@@ -20,9 +20,11 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   // Strategy settings
   struct StrategySettings {
     string name;  // strategy name
+    string network; // network
     uint256 insuranceAP; // insurance allocation percentage, scaled by 10e2
     uint256 desiredAssetAP; // desired asset allocation percentage, scaled by 10e2
-    uint256 assetValue; // asset value in strategy
+    uint256 assetValue; // total asset value in strategy
+    uint256 availableAmount; // available USD balance in strategy
     uint256 reportedAt; // last reported time
   }
 
@@ -56,7 +58,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   mapping(address => StrategySettings) public strategySettings;
 
   // MaxUSD Liabilities
-  uint256 public maxUSDLiabilities;
+  uint256 public override maxUSDLiabilities;
 
   // Redemption request dealy time
   uint256 public redemptionDelayTime;
@@ -71,6 +73,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
   // Address manager
   address public addressManager;
+  
 
   /*** Banker Settings Here */
 
@@ -127,7 +130,6 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    * @dev If mintDepositPercentage is 8000, we mint 80% of MaxUSD and 20% of MaxBanker
    * @param _addressManager Address manager contract
    * @param _mintDepositPercentage Mint percentage of MaxUSD and MaxBanker, scaled by 10e2
-   * @param _redemptionDelayTime Delay time for the redemption request
    */
   function initialize(
     address _addressManager,
@@ -183,15 +185,19 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    * @notice Add a new strategy
    * @dev Set isValidStrategy to true
    * @param _name Strategy name
+   * @param _network Strategy network
    * @param _strategy Strategy address
    * @param _insuranceAP Insurance allocation percentage, scaled by 10e2
    * @param _desiredAssetAP Desired asset allocation percentage, scaled by 10e2
+   * @param _availableAmount USD balance available in strategy
    */
   function addStrategy(
     string memory _name,
+    string memory _network,
     address _strategy,
     uint256 _insuranceAP,
-    uint256 _desiredAssetAP
+    uint256 _desiredAssetAP,
+    uint256 _availableAmount
   ) external onlyManager {
     require(!isValidStrategy[_strategy], "Already exists");
     require(_insuranceAP <= 10000, "InsuranceAP overflow");
@@ -200,8 +206,10 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
     strategies.push(_strategy);
     strategySettings[_strategy].name = _name;
+    strategySettings[_strategy].network = _network;
     strategySettings[_strategy].insuranceAP = _insuranceAP;
     strategySettings[_strategy].desiredAssetAP = _desiredAssetAP;
+    strategySettings[_strategy].availableAmount = _availableAmount;
   }
 
   /**
@@ -221,6 +229,24 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
         break;
       }
     }
+  }
+
+  /**
+   * @notice Set strategy name
+   * @param _strategy Strategy address
+   * @param _name Strategy name
+   */
+  function setStrategyName(address _strategy, string memory _name) external onlyManager {
+    strategySettings[_strategy].name = _name;
+  }
+
+  /**
+   * @notice Set strategy network
+   * @param _strategy Strategy address
+   * @param _network Strategy network
+   */
+  function setStrategyNetwork(address _strategy, string memory _network) external onlyManager {
+    strategySettings[_strategy].network = _network;
   }
 
   /**
@@ -279,22 +305,6 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @notice Batch set of the insurance and desired asset allocation percentages
-   * @dev Invest/redeem token in/from the strategy based on the new allocation
-   * @param _strategies Strategy addresses
-   * @param _insuranceAPs Insurance allocation percentages, scaled by 10e2
-   * @param _desiredAssetAPs Desired asset allocation percentages, scaled by 10e2
-   */
-  function batchAllocation(
-    address[] memory _strategies,
-    uint256[] memory _insuranceAPs,
-    uint256[] memory _desiredAssetAPs
-  ) external onlyManager onlyTurnOn nonReentrant {
-    // invest()
-    // redeem()
-  }
-
-  /**
    * @notice Invest/redeem funds in/from strategies
    * @dev Invest/redeem funds in/from the strategy based on the desiredAssetAP
    */
@@ -309,10 +319,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
       // ignore Treasury
       if (strategies[i] != treasury) {
         diffAmount =
-          int256((strategySettings[strategies[i]].assetValue / 100) * (10**usdc.decimals())) -
-          int256(
-            (((totalAssetValue / 100) * strategySettings[strategies[i]].desiredAssetAP) / 10000) * (10**usdc.decimals())
-          );
+          int256(strategySettings[strategies[i]].assetValue) - int256(totalAssetValue * strategySettings[strategies[i]].desiredAssetAP / 10000);
         if (diffAmount > 0) {
           IStrategyBase(strategies[i]).redeem(treasury, uint256(diffAmount));
         }
@@ -320,8 +327,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
     }
 
     // calculate total amount to invest
-    int256 totalAmountToAllocate = int256((strategySettings[treasury].assetValue / 100) * (10**usdc.decimals())) -
-      int256((((totalAssetValue / 100) * strategySettings[treasury].desiredAssetAP) / 10000) * (10**usdc.decimals()));
+    int256 totalAmountToAllocate = int256(strategySettings[treasury].assetValue) - int256(totalAssetValue * strategySettings[treasury].desiredAssetAP / 10000);
 
     // invest
     uint256 strategyAmountToAllocate;
@@ -332,18 +338,16 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
       // transfer funds from treasury to strategies
       if (strategies[j] != treasury) {
         diffAmount =
-          int256(
-            (((totalAssetValue / 100) * strategySettings[strategies[j]].desiredAssetAP) / 10000) * (10**usdc.decimals())
-          ) -
-          int256((strategySettings[strategies[j]].assetValue / 100) * (10**usdc.decimals()));
+          int256(totalAssetValue * strategySettings[strategies[j]].desiredAssetAP / 10000) - int256(strategySettings[strategies[j]].assetValue);
         if (diffAmount > 0) {
           strategyAmountToAllocate = uint256(totalAmountToAllocate > diffAmount ? diffAmount : totalAmountToAllocate);
           totalAmountToAllocate -= int256(strategyAmountToAllocate);
           require(totalAmountToAllocate >= 0, "Allocation failure");
           require(usdc.transferFrom(treasury, address(this), strategyAmountToAllocate), "Investment failure");
           require(usdc.transfer(strategies[j], strategyAmountToAllocate), "Investment failure");
-          // TODO: Remove the invest() comments later
-          // IStrategyBase(strategies[j]).invest(uint256(diffAmount));
+
+          // invest in the strategy
+          IStrategyBase(strategies[j]).invest(strategyAmountToAllocate);
         }
       }
     }
@@ -369,14 +373,6 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
    */
   function setMintDepositPercentage(uint256 _mintDepositPercentage) external onlyManager {
     mintDepositPercentage = _mintDepositPercentage;
-  }
-
-  /**
-   * @notice Set redemption request delay time
-   * @param _redemptionDelayTime Redemption request dealy time
-   */
-  function setRedemptionDelayTime(uint256 _redemptionDelayTime) external onlyManager {
-    redemptionDelayTime = _redemptionDelayTime;
   }
 
   /**
@@ -410,7 +406,7 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
   }
 
   // /**
-  //  * @notice Get the MaxUSD holder's current MaxUSDLiablity
+  //  * @notice Get the MaxUSD holder's current MaxUSDLiability
   //  * @param _maxUSDHolder MaxUSD holder
   //  */
   // function getUserMaxUSDLiability(address _maxUSDHolder) external view override returns (uint256) {
@@ -436,20 +432,37 @@ contract Banker is IBanker, ReentrancyGuardUpgradeable {
 
   /**
    * @notice Get total asset values across the strategies
-   * @dev Set every strategy value and update time
-   * @return (uint256) Total asset value scaled by 10e2, Ex: 100 USD is represented by 10,000
+   * @dev Set the asset value and update time of each strategy
+   * @dev Asset value includes the available amount
+   * @return (uint256) Total asset value
    */
   function getTotalAssetValue() public returns (uint256) {
     uint256 totalAssetValue;
     uint256 strategyAssetValue;
+    uint256 strategyAvailableAmount;
+
     for (uint256 i; i < strategies.length; i++) {
       strategyAssetValue = IStrategyAssetValue(strategies[i]).strategyAssetValue();
+      strategyAvailableAmount = IStrategyAssetValue(strategies[i]).strategyAvailableAmount();
+
       totalAssetValue += strategyAssetValue;
+
       strategySettings[strategies[i]].assetValue = strategyAssetValue;
+      strategySettings[strategies[i]].availableAmount = strategyAvailableAmount;
       strategySettings[strategies[i]].reportedAt = block.timestamp;
     }
 
     return totalAssetValue;
+  }
+
+  /**
+   * @notice Get insurance amount
+   * @return (int256) Returns insurance amount
+   */
+  function getInsurance() public returns (int256) {
+    int256 insurnace = int256(getTotalAssetValue() - maxUSDLiabilities);
+
+    return insurnace;
   }
 
   /**
